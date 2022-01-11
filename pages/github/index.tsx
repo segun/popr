@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useRouter } from "next/router";
 import React from "react";
-import { Button, Col, Container, Row } from "react-bootstrap";
+import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./auth.module.css";
 import Head from "next/head";
@@ -16,6 +16,7 @@ const Auth = () => {
     authToken: undefined,
   });
   const [userRepos, setUserRepos] = React.useState([]);
+  const [displayedRepos, setDisplayedRepos] = React.useState([]);
   const [pullRequests, setPullRequests] = React.useState([]);
   const [isPublicRepo, setPublicRepo] = React.useState(true);
   const [displayComponent, setDisplayComponent] = React.useState("repos");
@@ -25,6 +26,7 @@ const Auth = () => {
   const [modalRepo, setModalRepo] = React.useState("");
   const [modalFullRepoName, setModalFullRepoName] = React.useState("");
   const [showLoading, setShowLoading] = React.useState(false);
+  const [searchEnabled, setSearchEnabled] = React.useState(false);
 
   const router = useRouter();
   const code = router.query.code;
@@ -63,6 +65,7 @@ const Auth = () => {
       setPullRequests([]);
       setDisplayComponent("repos");
       setShowLoading(true);
+      setSearchEnabled(false);
       const result = await axios.get(
         `https://api.github.com/user/repos?visibility=${type}&page=${page}&per_page=${PER_PAGE}`,
         {
@@ -71,8 +74,10 @@ const Auth = () => {
           },
         }
       );
-      setUserRepos(result.data);      
+      setUserRepos(result.data);
+      setDisplayedRepos(result.data);
       setShowLoading(false);
+      setSearchEnabled(true);
     }
   };
 
@@ -83,6 +88,7 @@ const Auth = () => {
     page = 1
   ) => {
     setUserRepos([]);
+    setDisplayedRepos([]);
     setDisplayComponent("pull-requests");
     setShowFilterByBranchModal(false);
     setShowLoading(true);
@@ -97,7 +103,7 @@ const Auth = () => {
 
     const result = await axios.get(url, { headers: headers });
     console.log(result.data.items);
-    setPullRequests(result.data.items);    
+    setPullRequests(result.data.items);
     setShowLoading(false);
   };
 
@@ -110,6 +116,30 @@ const Auth = () => {
     setModalRepo(repo);
     setModalFullRepoName(fullRepoName);
     setShowFilterByBranchModal(true);
+  };
+
+  const searchRepo = async (e) => {
+    const value = e.target.value;
+    const filtered = userRepos.filter((repo) => {
+      console.log(repo.name);
+      console.log(repo.owner.login);
+      console.log(repo.description);
+      if (repo.name.indexOf(value) >= 0) {
+        return true;
+      }
+
+      if (repo.owner.login.indexOf(value) >= 0) {
+        return true;
+      }
+
+      if (repo.description?.indexOf(value) >= 0) {
+        return true;
+      }
+
+      return false;
+    });
+
+    setDisplayedRepos(filtered);
   };
 
   React.useEffect(() => {
@@ -127,7 +157,7 @@ const Auth = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container className="p-3">
-        {displayComponent === "repos" && (
+        <Container className="p-3">
           <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
             <Col>
               <Button
@@ -146,7 +176,23 @@ const Auth = () => {
               </Button>
             </Col>
           </Row>
-        )}
+          {displayComponent === "repos" && (
+            <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
+              <Col>
+                <Form.Group>
+                  <Form.Label>Quick Search</Form.Label>
+                  <Form.Control
+                    size="lg"
+                    type="text"
+                    placeholder="start typing repository name"
+                    onChange={searchRepo}
+                    disabled={!searchEnabled}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+          )}
+        </Container>
         <Row>
           {showLoading && (
             <div className="text-center">
@@ -161,7 +207,7 @@ const Auth = () => {
         <AuthProvider auth={user}>
           {displayComponent === "repos" && (
             <RepositoriesComponent
-              userRepos={userRepos}
+              userRepos={displayedRepos}
               onPullRequestsClick={selectBranch}
             />
           )}

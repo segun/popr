@@ -1,9 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Col, Row } from "react-bootstrap";
 import PropType from "prop-types";
+import PullRequestInfoModal from "../modals/pull-request-info-modal";
 
 const PullRequestsComponent = (props) => {
+  const [showPRInfoModal, setShowPRInfoModal] = useState(false);
+  const [selectedPR, setSelectedPR] = useState({});
+
   const { pullRequests } = props;
+
+  const showPRInfo = (pr) => {
+    console.log(pr);
+    setSelectedPR(pr);
+    setShowPRInfoModal(true);
+  };
+
   return (
     <div>
       <Row>
@@ -28,9 +39,7 @@ const PullRequestsComponent = (props) => {
                 <Col xs={3}>{pr.created_at}</Col>
                 <Col xs={3}>{pr.closed_at}</Col>
                 <Col xs={3}>
-                  <Button
-                    variant="info"
-                  >
+                  <Button variant="info" onClick={() => showPRInfo(pr)}>
                     More Info...
                   </Button>
                 </Col>
@@ -39,6 +48,11 @@ const PullRequestsComponent = (props) => {
           })}
         </Col>
       </Row>
+      <PullRequestInfoModal
+        pr={selectedPR}
+        show={showPRInfoModal}
+        onHide={() => setShowPRInfoModal(false)}
+      />
     </div>
   );
 };
