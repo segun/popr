@@ -23,7 +23,7 @@ const RepositoriesComponent = (props) => {
                 <Col xs={3}>{repo.html_url}</Col>
                 <Col xs={3}>
                   <Button
-                    onClick={() => onPullRequestsClick(repo.name, repo.owner.login)}
+                    onClick={() => onPullRequestsClick(repo.name, repo.full_name, repo.owner.login)}
                     variant="info"
                   >
                     Pull Requests

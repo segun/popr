@@ -8,6 +8,7 @@ import Head from "next/head";
 import RepositoriesComponent from "./components/repos.component";
 import FilterByBranchModal from "./modals/filter-by-branch.modal";
 import { AuthProvider } from "./hooks/use-auth.hook";
+import PullRequestsComponent from "./components/pull.requests.component";
 
 const Auth = () => {
   const [user, setUser] = React.useState({
@@ -22,6 +23,7 @@ const Auth = () => {
     React.useState(false);
   const [modalOwner, setModalOwner] = React.useState("");
   const [modalRepo, setModalRepo] = React.useState("");
+  const [modalFullRepoName, setModalFullRepoName] = React.useState("");
   const [showLoading, setShowLoading] = React.useState(false);
 
   const router = useRouter();
@@ -58,6 +60,8 @@ const Auth = () => {
 
   const getUserRepos = async (type: string, page: number) => {
     if (user.authToken) {
+      setPullRequests([]);
+      setDisplayComponent("repos");
       setShowLoading(true);
       const result = await axios.get(
         `https://api.github.com/user/repos?visibility=${type}&page=${page}&per_page=${PER_PAGE}`,
@@ -67,48 +71,44 @@ const Auth = () => {
           },
         }
       );
-      setUserRepos(result.data);
-      setDisplayComponent("repos");
+      setUserRepos(result.data);      
       setShowLoading(false);
     }
   };
 
-  const getPullRequests = async (
-    owner: string,
-    repo: string,
+  const searchPullRequests = async (
     branch: string,
-    page: number
+    repo: string,
+    keywords: string,
+    page = 1
   ) => {
+    setUserRepos([]);
+    setDisplayComponent("pull-requests");
     setShowFilterByBranchModal(false);
     setShowLoading(true);
-    setUserRepos([]);
-    let url = `https://api.github.com/repos/${owner}/${repo}/pulls?state=closed&base=${branch}&page=${page}&per_page=${PER_PAGE}`;
-    if (branch === undefined) {
-      url = `https://api.github.com/repos/${owner}/${repo}/pulls?state=closed&page=${page}&per_page=${PER_PAGE}`;
-    }
+    const q = `${keywords ? `${keywords} ` : ""}is:pr ${
+      branch === "All" ? "" : `base:${branch}`
+    } is:closed repo:${repo} author:${user.login}`;
+    console.log(q);
+    const url = `https://api.github.com/search/issues?q=${q}&page=${page}&per_page=${PER_PAGE}`;
+    const headers = {
+      Authorization: `token ${user.authToken}`,
+    };
 
-    const result = await axios.get(url, {
-      headers: {
-        Authorization: `token ${user.authToken}`,
-      },
-    });
-    console.log(result.data);
-
-    const userPRs = result.data.filter((pr) => pr.user.login === user.login);
-    console.log(userPRs);
-
-    setPullRequests([...pullRequests, ...userPRs]);
-    setDisplayComponent("pull-requests");
-
-    if (result.data.length > 1) {
-      getPullRequests(owner, repo, branch, page++);
-    }
+    const result = await axios.get(url, { headers: headers });
+    console.log(result.data.items);
+    setPullRequests(result.data.items);    
     setShowLoading(false);
   };
 
-  const selectBranch = async (repo: string, owner: string) => {
+  const selectBranch = async (
+    repo: string,
+    fullRepoName: string,
+    owner: string
+  ) => {
     setModalOwner(owner);
     setModalRepo(repo);
+    setModalFullRepoName(fullRepoName);
     setShowFilterByBranchModal(true);
   };
 
@@ -127,25 +127,26 @@ const Auth = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container className="p-3">
-        <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
-          <Col>
-            <Button
-              onClick={() => getUserRepos("public", 1)}
-              variant={isPublicRepo ? "primary" : "secondary"}
-            >
-              Public Repos
-            </Button>
-          </Col>
-          <Col>
-            <Button
-              onClick={() => getUserRepos("private", 1)}
-              variant={isPublicRepo ? "secondary" : "primary"}
-            >
-              Private Repos
-            </Button>
-          </Col>
-        </Row>
-
+        {displayComponent === "repos" && (
+          <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
+            <Col>
+              <Button
+                onClick={() => getUserRepos("public", 1)}
+                variant={isPublicRepo ? "primary" : "secondary"}
+              >
+                Public Repos
+              </Button>
+            </Col>
+            <Col>
+              <Button
+                onClick={() => getUserRepos("private", 1)}
+                variant={isPublicRepo ? "secondary" : "primary"}
+              >
+                Private Repos
+              </Button>
+            </Col>
+          </Row>
+        )}
         <Row>
           {showLoading && (
             <div className="text-center">
@@ -165,12 +166,17 @@ const Auth = () => {
             />
           )}
 
+          {displayComponent === "pull-requests" && (
+            <PullRequestsComponent pullRequests={pullRequests} />
+          )}
+
           <FilterByBranchModal
             owner={modalOwner}
             repo={modalRepo}
+            fullRepoName={modalFullRepoName}
             show={showFilterByBranchModal}
             onHide={() => setShowFilterByBranchModal(false)}
-            onGetPullRequestsClick={getPullRequests}
+            onGetPullRequestsClick={searchPullRequests}
           />
         </AuthProvider>
       </Container>
