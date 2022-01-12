@@ -32,7 +32,7 @@ const PullRequestsComponent = (props) => {
             <Col xs={3}></Col>
           </Row>
 
-          {pullRequests.map((pr) => {
+          {pullRequests && pullRequests.map((pr) => {
             return (
               <Row key={pr.id} style={{ marginBottom: "10px" }}>
                 <Col xs={3}>{pr.title}</Col>

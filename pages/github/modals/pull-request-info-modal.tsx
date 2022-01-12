@@ -1,5 +1,5 @@
 import { Modal, Button, Row, Col } from "react-bootstrap";
-import { useAuthContext } from "../hooks/use-auth.hook";
+import { useAuthContext } from "../../../utils/hooks/use-auth.hook";
 import PropType from "prop-types";
 import p5Types from "p5";
 import dynamic from "next/dynamic";
@@ -11,54 +11,53 @@ const PullRequestInfoModal = (props) => {
   const { pr } = props;
 
   const id = () => {
-    console.log("PR in ID: ", pr);
     const result = [];
-    let val1 = [...pr.html_url.toString()];
-    result.push(
-      val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-    ); // 1
+    if (pr) {
+      let val1 = [...pr.html_url.toString()];
+      result.push(
+        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
+      ); // 1
 
-    val1 = [...pr.node_id.toString()];
-    result.push(
-      val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-    ); // 2
+      val1 = [...pr.node_id.toString()];
+      result.push(
+        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
+      ); // 2
 
-    val1 = [...pr.title.toString()];
-    result.push(
-      val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-    ); // 3
+      val1 = [...pr.title.toString()];
+      result.push(
+        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
+      ); // 3
 
-    val1 = [...pr.id.toString()];
-    result.push(
-      val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-    ); // 4
+      val1 = [...pr.id.toString()];
+      result.push(
+        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
+      ); // 4
 
-    val1 = [...pr.number.toString()];
-    result.push(
-      val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-    ); // 5
+      val1 = [...pr.number.toString()];
+      result.push(
+        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
+      ); // 5
 
-    val1 = [...pr.created_at.toString()];
-    result.push(
-      val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-    ); // 6
+      val1 = [...pr.created_at.toString()];
+      result.push(
+        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
+      ); // 6
 
-    val1 = [...pr.updated_at.toString()];
-    result.push(
-      val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-    ); // 7
+      val1 = [...pr.updated_at.toString()];
+      result.push(
+        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
+      ); // 7
 
-    val1 = [...pr.closed_at.toString()];
-    result.push(
-      val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-    ); // 8
+      val1 = [...pr.closed_at.toString()];
+      result.push(
+        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
+      ); // 8
 
-    val1 = [...pr.body.toString()];
-    result.push(
-      val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-    ); // 9
-
-    console.log(result);
+      val1 = [...pr.body.toString()];
+      result.push(
+        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
+      ); // 9
+    }
     return result;
   };
 
@@ -137,7 +136,7 @@ const PullRequestInfoModal = (props) => {
 
         let radius = 20;
 
-        if(i % 3 === 0) {
+        if (i % 3 === 0) {
           radius = 15;
         }
 
@@ -174,19 +173,19 @@ const PullRequestInfoModal = (props) => {
       <Modal.Body>
         <Row>
           <Col xs={2}>Title:</Col>
-          <Col>{pr.title}</Col>
+          <Col>{pr?.title}</Col>
         </Row>
         <hr />
         <Row>
           <Col xs={2}>Body:</Col>
-          <Col>{pr.body}</Col>
+          <Col>{pr?.body}</Col>
         </Row>
         <hr />
         <Row>
           <Col xs={2}>Url</Col>
           <Col>
-            <a href={pr.html_url} target="_blank">
-              {pr.html_url}
+            <a href={pr?.html_url} target="_blank" rel="noreferrer">
+              {pr?.html_url}
             </a>
           </Col>
         </Row>

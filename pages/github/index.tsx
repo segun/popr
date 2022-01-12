@@ -7,7 +7,7 @@ import "./auth.module.css";
 import Head from "next/head";
 import RepositoriesComponent from "./components/repos.component";
 import FilterByBranchModal from "./modals/filter-by-branch.modal";
-import { AuthProvider } from "./hooks/use-auth.hook";
+import { AuthProvider } from "../../utils/hooks/use-auth.hook";
 import PullRequestsComponent from "./components/pull.requests.component";
 
 const Auth = () => {
@@ -32,51 +32,6 @@ const Auth = () => {
   const code = router.query.code;
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
   const PER_PAGE = 100;
-
-  const doAuth = async () => {
-    if (code !== undefined) {
-      setShowLoading(true);
-      const result = await axios.get(
-        `http://localhost:9999/authenticate/${code}`
-      );
-      if (result.data.error) {
-        window.location.href = `https://github.com/login/oauth/authorize?client_id=Iv1.967aea4cd2c26675&state=${state}&redirect_uri=http://localhost:3000/github`;
-      }
-      // get user
-      const userResult = await axios.get(`https://api.github.com/user`, {
-        headers: {
-          Authorization: `token ${result.data.token}`,
-        },
-      });
-      const userContext = {
-        login: userResult.data.login,
-        authToken: result.data.token,
-      };
-
-      setUser(userContext);
-      setShowLoading(false);
-    }
-  };
-
-  const getUserRepos = async (type: string, page: number) => {
-    if (user.authToken) {
-      setPullRequests([]);
-      setDisplayComponent("repos");
-      setShowLoading(true);
-      setSearchEnabled(false);
-      const result = await axios.get(
-        `https://api.github.com/user/repos?visibility=${type}&page=${page}&per_page=${PER_PAGE}`,
-        {
-          headers: {
-            Authorization: `token ${user.authToken}`,
-          },
-        }
-      );
-      setUserRepos(result.data);
-      setShowLoading(false);
-      setSearchEnabled(true);
-    }
-  };
 
   const searchPullRequests = async (
     branch: string,
@@ -138,10 +93,55 @@ const Auth = () => {
   };
 
   React.useEffect(() => {
+    const doAuth = async () => {
+      if (code !== undefined) {
+        setShowLoading(true);
+        const result = await axios.get(
+          `http://localhost:9999/authenticate/${code}`
+        );
+        if (result.data.error) {
+          window.location.href = `https://github.com/login/oauth/authorize?client_id=Iv1.967aea4cd2c26675&state=${state}&redirect_uri=http://localhost:3000/github`;
+        }
+        // get user
+        const userResult = await axios.get(`https://api.github.com/user`, {
+          headers: {
+            Authorization: `token ${result.data.token}`,
+          },
+        });
+        const userContext = {
+          login: userResult.data.login,
+          authToken: result.data.token,
+        };
+  
+        setUser(userContext);
+        setShowLoading(false);
+      }
+    };
+
     doAuth();
   }, [code]);
 
-  React.useEffect(() => {
+  const getUserRepos = async (type: string, page: number) => {
+    if (user.authToken) {
+      setPullRequests([]);
+      setDisplayComponent("repos");
+      setShowLoading(true);
+      setSearchEnabled(false);
+      const result = await axios.get(
+        `https://api.github.com/user/repos?visibility=${type}&page=${page}&per_page=${PER_PAGE}`,
+        {
+          headers: {
+            Authorization: `token ${user.authToken}`,
+          },
+        }
+      );
+      setUserRepos(result.data);
+      setShowLoading(false);
+      setSearchEnabled(true);
+    }
+  };
+
+  React.useEffect(() => {  
     getUserRepos("public", 1);
   }, [user.authToken]);
 

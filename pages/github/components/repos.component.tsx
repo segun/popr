@@ -15,7 +15,7 @@ const RepositoriesComponent = (props) => {
             <Col xs={3} style={{ fontWeight: "bold" }}>Url</Col>
             <Col xs={3}></Col>
           </Row>
-          {userRepos.map((repo) => {
+          {userRepos && userRepos.map((repo) => {
             return (
               <Row key={repo.full_name} style={{ marginBottom: "10px" }}>
                 <Col xs={3}>{repo.name}</Col>

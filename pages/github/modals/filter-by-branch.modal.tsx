@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { useAuthContext } from "../hooks/use-auth.hook";
+import { useAuthContext } from "../../../utils/hooks/use-auth.hook";
 import PropType from "prop-types";
 
 const FilterByBranchModal = (props) => {
