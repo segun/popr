@@ -17,7 +17,7 @@ const RepositoriesComponent = (props) => {
           </Row>
           {userRepos.map((repo) => {
             return (
-              <Row key={repo.name} style={{ marginBottom: "10px" }}>
+              <Row key={repo.full_name} style={{ marginBottom: "10px" }}>
                 <Col xs={3}>{repo.name}</Col>
                 <Col xs={3}>{repo.owner.login}</Col>
                 <Col xs={3}>{repo.html_url}</Col>

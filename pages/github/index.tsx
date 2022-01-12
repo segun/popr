@@ -16,7 +16,6 @@ const Auth = () => {
     authToken: undefined,
   });
   const [userRepos, setUserRepos] = React.useState([]);
-  const [displayedRepos, setDisplayedRepos] = React.useState([]);
   const [pullRequests, setPullRequests] = React.useState([]);
   const [isPublicRepo, setPublicRepo] = React.useState(true);
   const [displayComponent, setDisplayComponent] = React.useState("repos");
@@ -27,6 +26,7 @@ const Auth = () => {
   const [modalFullRepoName, setModalFullRepoName] = React.useState("");
   const [showLoading, setShowLoading] = React.useState(false);
   const [searchEnabled, setSearchEnabled] = React.useState(false);
+  const [searchKey, setSearchKey] = React.useState("");
 
   const router = useRouter();
   const code = router.query.code;
@@ -39,8 +39,6 @@ const Auth = () => {
       const result = await axios.get(
         `http://localhost:9999/authenticate/${code}`
       );
-      console.log("Error: ", result.data.error);
-      console.log("Token: ", result.data.token);
       if (result.data.error) {
         window.location.href = `https://github.com/login/oauth/authorize?client_id=Iv1.967aea4cd2c26675&state=${state}&redirect_uri=http://localhost:3000/github`;
       }
@@ -75,7 +73,6 @@ const Auth = () => {
         }
       );
       setUserRepos(result.data);
-      setDisplayedRepos(result.data);
       setShowLoading(false);
       setSearchEnabled(true);
     }
@@ -88,21 +85,20 @@ const Auth = () => {
     page = 1
   ) => {
     setUserRepos([]);
-    setDisplayedRepos([]);
     setDisplayComponent("pull-requests");
     setShowFilterByBranchModal(false);
     setShowLoading(true);
     const q = `${keywords ? `${keywords} ` : ""}is:pr ${
       branch === "All" ? "" : `base:${branch}`
     } is:closed repo:${repo} author:${user.login}`;
-    console.log(q);
+
     const url = `https://api.github.com/search/issues?q=${q}&page=${page}&per_page=${PER_PAGE}`;
     const headers = {
       Authorization: `token ${user.authToken}`,
     };
 
     const result = await axios.get(url, { headers: headers });
-    console.log(result.data.items);
+
     setPullRequests(result.data.items);
     setShowLoading(false);
   };
@@ -118,28 +114,27 @@ const Auth = () => {
     setShowFilterByBranchModal(true);
   };
 
-  const searchRepo = async (e) => {
+  const searchFormChanged = async (e) => {
     const value = e.target.value;
-    const filtered = userRepos.filter((repo) => {
-      console.log(repo.name);
-      console.log(repo.owner.login);
-      console.log(repo.description);
-      if (repo.name.indexOf(value) >= 0) {
-        return true;
-      }
+    setSearchKey(value);
+  }
 
-      if (repo.owner.login.indexOf(value) >= 0) {
-        return true;
-      }
+  const searchRepo = async () => {
+    setPullRequests([]);
+    setDisplayComponent("repos");
+    setShowLoading(true);
+    setSearchEnabled(false);
 
-      if (repo.description?.indexOf(value) >= 0) {
-        return true;
-      }
+    const q = `${searchKey} in:name,description`
+    const url = `https://api.github.com/search/repositories?q=${q}&per_page=${PER_PAGE}`;
+    const headers = {
+      Authorization: `token ${user.authToken}`,
+    };
 
-      return false;
-    });
-
-    setDisplayedRepos(filtered);
+    const result = await axios.get(url, { headers: headers });
+    setUserRepos(result.data.items);
+    setShowLoading(false);
+    setSearchEnabled(true);
   };
 
   React.useEffect(() => {
@@ -178,17 +173,24 @@ const Auth = () => {
           </Row>
           {displayComponent === "repos" && (
             <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
-              <Col>
+              <Col xs={9}>
                 <Form.Group>
-                  <Form.Label>Quick Search</Form.Label>
                   <Form.Control
                     size="lg"
                     type="text"
-                    placeholder="start typing repository name"
-                    onChange={searchRepo}
+                    placeholder="Not listed? Search"
+                    onChange={searchFormChanged}
                     disabled={!searchEnabled}
                   />
                 </Form.Group>
+              </Col>
+              <Col xs={3}>
+              <Button
+                onClick={() => searchRepo()}
+                variant="primary"
+              >
+                Search
+              </Button>                
               </Col>
             </Row>
           )}
@@ -207,7 +209,7 @@ const Auth = () => {
         <AuthProvider auth={user}>
           {displayComponent === "repos" && (
             <RepositoriesComponent
-              userRepos={displayedRepos}
+              userRepos={userRepos}
               onPullRequestsClick={selectBranch}
             />
           )}

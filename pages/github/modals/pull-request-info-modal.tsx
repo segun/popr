@@ -58,15 +58,8 @@ const PullRequestInfoModal = (props) => {
       val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
     ); // 9
 
-    // use brighter colors
-    const ids = result.map((res) => {
-      if (res * 2 > 255) return res;
-      if (res * 2 < 255) return res * 2;
-      if (res < 130) return res + 100;
-      return res;
-    });
-
-    return ids;
+    console.log(result);
+    return result;
   };
 
   const auth = useAuthContext();
@@ -142,10 +135,27 @@ const PullRequestInfoModal = (props) => {
         let tonesIndex = Math.floor(Math.random() * tonesArray.length);
         let tones = tonesArray[tonesIndex];
 
-        drawTriangle(p5, dotLine[i], dotLine[i + 1], dotLine[i + 2], tones);
+        let radius = 20;
+
+        if(i % 3 === 0) {
+          radius = 15;
+        }
+
+        if (i % 2 === 0) {
+          drawTriangle(p5, dotLine[i], dotLine[i + 1], dotLine[i + 2], tones);
+        } else {
+          drawCircle(p5, dotLine[i], dotLine[i + 1], tones, radius);
+        }
       }
     }
   }
+
+  const drawCircle = (p5: p5Types, pointA, pointB, tones, radius) => {
+    let random_index = Math.floor(Math.random() * tones.length);
+    const [r, g, b] = tones[random_index];
+    p5.fill(r, g, b);
+    p5.circle(pointA.x, pointB.y, radius);
+  };
 
   const drawTriangle = (p5: p5Types, pointA, pointB, pointC, tones) => {
     let random_index = Math.floor(Math.random() * tones.length);
