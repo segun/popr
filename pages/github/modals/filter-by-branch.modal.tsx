@@ -11,10 +11,11 @@ const FilterByBranchModal = (props) => {
   const [selectedBranch, setSelectedBranch] = useState(undefined);
   const [keywords, setKeywords] = useState(undefined);
 
+  const reposApiUrl = process.env.NEXT_PUBLIC_API_REPOS_URL;
   useEffect(() => {
     const getBranches = async () => {
       const result = await axios.get(
-        `https://api.github.com/repos/${owner}/${repo}/branches?page=1&per_page=100`,
+        `${reposApiUrl}/${owner}/${repo}/branches?page=1&per_page=100`,
         {
           headers: {
             Authorization: `token ${auth.authToken}`,

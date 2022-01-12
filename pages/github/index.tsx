@@ -33,6 +33,14 @@ const Auth = () => {
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
   const PER_PAGE = 100;
 
+  const accessTokenUrl = process.env.NEXT_PUBLIC_ACCESS_TOKEN_URL;
+  const searchReposUrl = process.env.NEXT_PUBLIC_API_SEARCH_REPOSITORIES_URL;
+  const authUrl = process.env.NEXT_PUBLIC_API_AUTHORIZE_URL;
+  const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+  const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
+  const userApiUrl = process.env.NEXT_PUBLIC_USER_API_URL;
+  const userReposApiUrl = process.env.NEXT_PUBLIC_API_USER_REPOS_URL
+
   const searchPullRequests = async (
     branch: string,
     repo: string,
@@ -81,7 +89,7 @@ const Auth = () => {
     setSearchEnabled(false);
 
     const q = `${searchKey} in:name,description`
-    const url = `https://api.github.com/search/repositories?q=${q}&per_page=${PER_PAGE}`;
+    const url = `${searchReposUrl}?q=${q}&per_page=${PER_PAGE}`;
     const headers = {
       Authorization: `token ${user.authToken}`,
     };
@@ -97,13 +105,13 @@ const Auth = () => {
       if (code !== undefined) {
         setShowLoading(true);
         const result = await axios.get(
-          `http://localhost:9999/authenticate/${code}`
+          `${accessTokenUrl}/${code}`
         );
         if (result.data.error) {
-          window.location.href = `https://github.com/login/oauth/authorize?client_id=Iv1.967aea4cd2c26675&state=${state}&redirect_uri=http://localhost:3000/github`;
+          window.location.href = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
         }
         // get user
-        const userResult = await axios.get(`https://api.github.com/user`, {
+        const userResult = await axios.get(`${userApiUrl}`, {
           headers: {
             Authorization: `token ${result.data.token}`,
           },
@@ -128,7 +136,7 @@ const Auth = () => {
       setShowLoading(true);
       setSearchEnabled(false);
       const result = await axios.get(
-        `https://api.github.com/user/repos?visibility=${type}&page=${page}&per_page=${PER_PAGE}`,
+        `${userReposApiUrl}?visibility=${type}&page=${page}&per_page=${PER_PAGE}`,
         {
           headers: {
             Authorization: `token ${user.authToken}`,
