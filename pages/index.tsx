@@ -7,7 +7,7 @@ import Link from "next/link";
 export default function Home() {
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
 
-  const authUrl = process.env.NEXT_PUBLIC_API_LOGIN_URL;
+  const authUrl = process.env.NEXT_PUBLIC_API_AUTHORIZE_URL;
   const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
   const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
   const url = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
