@@ -51,7 +51,7 @@ const Auth = () => {
     setShowFilterByBranchModal(false);
     setShowLoading(true);
     const q = `${keywords ? `${keywords} ` : ""}is:pr ${
-      branch === "all" ? "" : `base:${branch}`
+      branch === "all" || !branch ? "" : `base:${branch}`
     } is:closed repo:${repo} author:${user.login}`;
 
     const url = `https://api.github.com/search/issues?q=${q}&page=${page}&per_page=${PER_PAGE}`;
