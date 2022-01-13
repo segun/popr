@@ -39,7 +39,9 @@ const Auth = () => {
   const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
   const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
   const userApiUrl = process.env.NEXT_PUBLIC_USER_API_URL;
-  const userReposApiUrl = process.env.NEXT_PUBLIC_API_USER_REPOS_URL
+  const userReposApiUrl = process.env.NEXT_PUBLIC_API_USER_REPOS_URL;
+  const stage = process.env.NEXT_PUBLIC_STAGE;
+  const clientSecret = process.env.NEXT_PUBLIC_CLIENT_SECRET;
 
   const searchPullRequests = async (
     branch: string,
@@ -80,7 +82,7 @@ const Auth = () => {
   const searchFormChanged = async (e) => {
     const value = e.target.value;
     setSearchKey(value);
-  }
+  };
 
   const searchRepo = async () => {
     setPullRequests([]);
@@ -88,7 +90,7 @@ const Auth = () => {
     setShowLoading(true);
     setSearchEnabled(false);
 
-    const q = `${searchKey} in:name,description`
+    const q = `${searchKey} in:name,description`;
     const url = `${searchReposUrl}?q=${q}&per_page=${PER_PAGE}`;
     const headers = {
       Authorization: `token ${user.authToken}`,
@@ -104,9 +106,21 @@ const Auth = () => {
     const doAuth = async () => {
       if (code !== undefined) {
         setShowLoading(true);
-        const result = await axios.get(
-          `${accessTokenUrl}/${code}`
-        );
+
+        let result;
+        if (stage === "local") {
+          result = await axios.get(`${accessTokenUrl}/${code}`);
+        } else {
+          const postData = {
+            client_id: clientId,
+            client_secret: clientSecret,
+            code: code,
+            redirect_uri: redirectUrl
+          }
+          result = axios.post(`${accessTokenUrl}`, postData);
+          console.log("Post Result: ", result);
+        }
+
         if (result.data.error) {
           window.location.href = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
         }
@@ -120,7 +134,7 @@ const Auth = () => {
           login: userResult.data.login,
           authToken: result.data.token,
         };
-  
+
         setUser(userContext);
         setShowLoading(false);
       }
@@ -149,7 +163,7 @@ const Auth = () => {
     }
   };
 
-  React.useEffect(() => {  
+  React.useEffect(() => {
     getUserRepos("public", 1);
   }, [user.authToken]);
 
@@ -193,12 +207,9 @@ const Auth = () => {
                 </Form.Group>
               </Col>
               <Col xs={3}>
-              <Button
-                onClick={() => searchRepo()}
-                variant="primary"
-              >
-                Search
-              </Button>                
+                <Button onClick={() => searchRepo()} variant="primary">
+                  Search
+                </Button>
               </Col>
             </Row>
           )}
