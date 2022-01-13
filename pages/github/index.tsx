@@ -130,14 +130,14 @@ const Auth = () => {
     doAuth();
   }, [code]);
 
-  const getUserRepos = async (type: string, page: number) => {
+  const getUserRepos = async (page: number) => {
     if (user.authToken) {
       setPullRequests([]);
       setDisplayComponent("repos");
       setShowLoading(true);
       setSearchEnabled(false);
       const result = await axios.get(
-        `${userReposApiUrl}?visibility=${type}&page=${page}&per_page=${PER_PAGE}`,
+        `${userReposApiUrl}?page=${page}&per_page=${PER_PAGE}`,
         {
           headers: {
             Authorization: `token ${user.authToken}`,
@@ -151,7 +151,7 @@ const Auth = () => {
   };
 
   React.useEffect(() => {
-    getUserRepos("public", 1);
+    getUserRepos(1);
   }, [user.authToken]);
 
   return (
@@ -162,24 +162,6 @@ const Auth = () => {
       </Head>
       <Container className="p-3">
         <Container className="p-3">
-          <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
-            <Col>
-              <Button
-                onClick={() => getUserRepos("public", 1)}
-                variant={isPublicRepo ? "primary" : "secondary"}
-              >
-                Public Repos
-              </Button>
-            </Col>
-            <Col>
-              <Button
-                onClick={() => getUserRepos("private", 1)}
-                variant={isPublicRepo ? "secondary" : "primary"}
-              >
-                Private Repos
-              </Button>
-            </Col>
-          </Row>
           {displayComponent === "repos" && (
             <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
               <Col xs={9}>
