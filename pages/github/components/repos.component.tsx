@@ -15,15 +15,15 @@ const RepositoriesComponent = (props) => {
             <Col xs={3} style={{ fontWeight: "bold" }}>Url</Col>
             <Col xs={3}></Col>
           </Row>
-          {userRepos.map((repo) => {
+          {userRepos && userRepos.map((repo) => {
             return (
-              <Row key={repo.name} style={{ marginBottom: "10px" }}>
+              <Row key={repo.full_name} style={{ marginBottom: "10px" }}>
                 <Col xs={3}>{repo.name}</Col>
                 <Col xs={3}>{repo.owner.login}</Col>
                 <Col xs={3}>{repo.html_url}</Col>
                 <Col xs={3}>
                   <Button
-                    onClick={() => onPullRequestsClick(repo.name, repo.owner.login)}
+                    onClick={() => onPullRequestsClick(repo.name, repo.full_name, repo.owner.login)}
                     variant="info"
                   >
                     Pull Requests

@@ -7,6 +7,11 @@ import Link from "next/link";
 export default function Home() {
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
 
+  const authUrl = process.env.NEXT_PUBLIC_API_AUTHORIZE_URL;
+  const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
+  const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+  const url = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
+
   return (
     <div className="container">
       <Head>
@@ -16,7 +21,7 @@ export default function Home() {
 
       <Container className="p-3">
         <Link
-          href={`https://github.com/login/oauth/authorize?client_id=Iv1.967aea4cd2c26675&state=${state}&redirect_uri=http://localhost:3000/github`}
+          href={url}
         >
           <Button variant="primary">Connect Github</Button>
         </Link>

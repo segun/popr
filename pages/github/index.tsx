@@ -1,13 +1,14 @@
 import axios from "axios";
 import { useRouter } from "next/router";
 import React from "react";
-import { Button, Col, Container, Row } from "react-bootstrap";
+import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./auth.module.css";
 import Head from "next/head";
 import RepositoriesComponent from "./components/repos.component";
 import FilterByBranchModal from "./modals/filter-by-branch.modal";
-import { AuthProvider } from "./hooks/use-auth.hook";
+import { AuthProvider } from "../../utils/hooks/use-auth.hook";
+import PullRequestsComponent from "./components/pull.requests.component";
 
 const Auth = () => {
   const [user, setUser] = React.useState({
@@ -22,45 +23,121 @@ const Auth = () => {
     React.useState(false);
   const [modalOwner, setModalOwner] = React.useState("");
   const [modalRepo, setModalRepo] = React.useState("");
+  const [modalFullRepoName, setModalFullRepoName] = React.useState("");
   const [showLoading, setShowLoading] = React.useState(false);
+  const [searchEnabled, setSearchEnabled] = React.useState(false);
+  const [searchKey, setSearchKey] = React.useState("");
 
   const router = useRouter();
   const code = router.query.code;
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
   const PER_PAGE = 100;
 
-  const doAuth = async () => {
-    if (code !== undefined) {
-      setShowLoading(true);
-      const result = await axios.get(
-        `http://localhost:9999/authenticate/${code}`
-      );
-      console.log("Error: ", result.data.error);
-      console.log("Token: ", result.data.token);
-      if (result.data.error) {
-        window.location.href = `https://github.com/login/oauth/authorize?client_id=Iv1.967aea4cd2c26675&state=${state}&redirect_uri=http://localhost:3000/github`;
-      }
-      // get user
-      const userResult = await axios.get(`https://api.github.com/user`, {
-        headers: {
-          Authorization: `token ${result.data.token}`,
-        },
-      });
-      const userContext = {
-        login: userResult.data.login,
-        authToken: result.data.token,
-      };
+  const searchReposUrl = process.env.NEXT_PUBLIC_API_SEARCH_REPOSITORIES_URL;
+  const authUrl = process.env.NEXT_PUBLIC_API_AUTHORIZE_URL;
+  const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+  const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
+  const userApiUrl = process.env.NEXT_PUBLIC_USER_API_URL;
+  const userReposApiUrl = process.env.NEXT_PUBLIC_API_USER_REPOS_URL;
 
-      setUser(userContext);
-      setShowLoading(false);
-    }
+  const searchPullRequests = async (
+    branch: string,
+    repo: string,
+    keywords: string,
+    page = 1
+  ) => {
+    setUserRepos([]);
+    setDisplayComponent("pull-requests");
+    setShowFilterByBranchModal(false);
+    setShowLoading(true);
+    const q = `${keywords ? `${keywords} ` : ""}is:pr ${
+      branch === "All" ? "" : `base:${branch}`
+    } is:closed repo:${repo} author:${user.login}`;
+
+    const url = `https://api.github.com/search/issues?q=${q}&page=${page}&per_page=${PER_PAGE}`;
+    const headers = {
+      Authorization: `token ${user.authToken}`,
+    };
+
+    const result = await axios.get(url, { headers: headers });
+
+    setPullRequests(result.data.items);
+    setShowLoading(false);
   };
+
+  const selectBranch = async (
+    repo: string,
+    fullRepoName: string,
+    owner: string
+  ) => {
+    setModalOwner(owner);
+    setModalRepo(repo);
+    setModalFullRepoName(fullRepoName);
+    setShowFilterByBranchModal(true);
+  };
+
+  const searchFormChanged = async (e) => {
+    const value = e.target.value;
+    setSearchKey(value);
+  };
+
+  const searchRepo = async () => {
+    setPullRequests([]);
+    setDisplayComponent("repos");
+    setShowLoading(true);
+    setSearchEnabled(false);
+
+    const q = `${searchKey} in:name,description`;
+    const url = `${searchReposUrl}?q=${q}&per_page=${PER_PAGE}`;
+    const headers = {
+      Authorization: `token ${user.authToken}`,
+    };
+
+    const result = await axios.get(url, { headers: headers });
+    setUserRepos(result.data.items);
+    setShowLoading(false);
+    setSearchEnabled(true);
+  };
+
+  React.useEffect(() => {
+    const doAuth = async () => {
+      if (code !== undefined) {
+        setShowLoading(true);
+
+        const result = await axios.get(`/api/github/${code}/auth`);
+        if (result.data.token.indexOf("expired") >= 0) {
+          setShowLoading(false);
+          window.location.href = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
+        } else {
+          // get user
+          const accessToken = result.data.token.split("=")[1].split('&')[0];
+          const userResult = await axios.get(`${userApiUrl}`, {
+            headers: {
+              Authorization: `token ${accessToken}`,
+            },
+          });
+          const userContext = {
+            login: userResult.data.login,
+            authToken: accessToken,
+          };
+
+          setUser(userContext);
+          setShowLoading(false);
+        }        
+      }
+    };
+
+    doAuth();
+  }, [code]);
 
   const getUserRepos = async (type: string, page: number) => {
     if (user.authToken) {
+      setPullRequests([]);
+      setDisplayComponent("repos");
       setShowLoading(true);
+      setSearchEnabled(false);
       const result = await axios.get(
-        `https://api.github.com/user/repos?visibility=${type}&page=${page}&per_page=${PER_PAGE}`,
+        `${userReposApiUrl}?visibility=${type}&page=${page}&per_page=${PER_PAGE}`,
         {
           headers: {
             Authorization: `token ${user.authToken}`,
@@ -68,53 +145,10 @@ const Auth = () => {
         }
       );
       setUserRepos(result.data);
-      setDisplayComponent("repos");
       setShowLoading(false);
+      setSearchEnabled(true);
     }
   };
-
-  const getPullRequests = async (
-    owner: string,
-    repo: string,
-    branch: string,
-    page: number
-  ) => {
-    setShowFilterByBranchModal(false);
-    setShowLoading(true);
-    setUserRepos([]);
-    let url = `https://api.github.com/repos/${owner}/${repo}/pulls?state=closed&base=${branch}&page=${page}&per_page=${PER_PAGE}`;
-    if (branch === undefined) {
-      url = `https://api.github.com/repos/${owner}/${repo}/pulls?state=closed&page=${page}&per_page=${PER_PAGE}`;
-    }
-
-    const result = await axios.get(url, {
-      headers: {
-        Authorization: `token ${user.authToken}`,
-      },
-    });
-    console.log(result.data);
-
-    const userPRs = result.data.filter((pr) => pr.user.login === user.login);
-    console.log(userPRs);
-
-    setPullRequests([...pullRequests, ...userPRs]);
-    setDisplayComponent("pull-requests");
-
-    if (result.data.length > 1) {
-      getPullRequests(owner, repo, branch, page++);
-    }
-    setShowLoading(false);
-  };
-
-  const selectBranch = async (repo: string, owner: string) => {
-    setModalOwner(owner);
-    setModalRepo(repo);
-    setShowFilterByBranchModal(true);
-  };
-
-  React.useEffect(() => {
-    doAuth();
-  }, [code]);
 
   React.useEffect(() => {
     getUserRepos("public", 1);
@@ -127,25 +161,46 @@ const Auth = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container className="p-3">
-        <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
-          <Col>
-            <Button
-              onClick={() => getUserRepos("public", 1)}
-              variant={isPublicRepo ? "primary" : "secondary"}
-            >
-              Public Repos
-            </Button>
-          </Col>
-          <Col>
-            <Button
-              onClick={() => getUserRepos("private", 1)}
-              variant={isPublicRepo ? "secondary" : "primary"}
-            >
-              Private Repos
-            </Button>
-          </Col>
-        </Row>
-
+        <Container className="p-3">
+          <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
+            <Col>
+              <Button
+                onClick={() => getUserRepos("public", 1)}
+                variant={isPublicRepo ? "primary" : "secondary"}
+              >
+                Public Repos
+              </Button>
+            </Col>
+            <Col>
+              <Button
+                onClick={() => getUserRepos("private", 1)}
+                variant={isPublicRepo ? "secondary" : "primary"}
+              >
+                Private Repos
+              </Button>
+            </Col>
+          </Row>
+          {displayComponent === "repos" && (
+            <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
+              <Col xs={9}>
+                <Form.Group>
+                  <Form.Control
+                    size="lg"
+                    type="text"
+                    placeholder="Not listed? Search"
+                    onChange={searchFormChanged}
+                    disabled={!searchEnabled}
+                  />
+                </Form.Group>
+              </Col>
+              <Col xs={3}>
+                <Button onClick={() => searchRepo()} variant="primary">
+                  Search
+                </Button>
+              </Col>
+            </Row>
+          )}
+        </Container>
         <Row>
           {showLoading && (
             <div className="text-center">
@@ -165,12 +220,17 @@ const Auth = () => {
             />
           )}
 
+          {displayComponent === "pull-requests" && (
+            <PullRequestsComponent pullRequests={pullRequests} />
+          )}
+
           <FilterByBranchModal
             owner={modalOwner}
             repo={modalRepo}
+            fullRepoName={modalFullRepoName}
             show={showFilterByBranchModal}
             onHide={() => setShowFilterByBranchModal(false)}
-            onGetPullRequestsClick={getPullRequests}
+            onGetPullRequestsClick={searchPullRequests}
           />
         </AuthProvider>
       </Container>
