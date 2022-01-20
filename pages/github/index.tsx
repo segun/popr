@@ -9,6 +9,7 @@ import RepositoriesComponent from "./components/repos.component";
 import FilterByBranchModal from "./modals/filter-by-branch.modal";
 import { AuthProvider } from "../../utils/hooks/use-auth.hook";
 import PullRequestsComponent from "./components/pull.requests.component";
+import Buttons from "../components/buttons";
 
 const Auth = () => {
   const [user, setUser] = React.useState({
@@ -110,7 +111,7 @@ const Auth = () => {
           window.location.href = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
         } else {
           // get user
-          const accessToken = result.data.token.split("=")[1].split('&')[0];
+          const accessToken = result.data.token.split("=")[1].split("&")[0];
           const userResult = await axios.get(`${userApiUrl}`, {
             headers: {
               Authorization: `token ${accessToken}`,
@@ -123,7 +124,7 @@ const Auth = () => {
 
           setUser(userContext);
           setShowLoading(false);
-        }        
+        }
       }
     };
 
@@ -160,8 +161,10 @@ const Auth = () => {
         <title>Proof of Pull Request</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
       <Container className="p-3">
         <Container className="p-3">
+          <Buttons />
           {displayComponent === "repos" && (
             <Row style={{ marginBottom: "15px", marginTop: "15px" }}>
               <Col xs={9}>
