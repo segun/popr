@@ -11,7 +11,6 @@ import {
   getPOPRContract,
 } from "../../../utils/hooks/use-contracts.hook";
 import { WalletStateContext } from "../../../utils/hooks/WalletStateContext";
-import { toast } from "react-toastify";
 import axios from "axios";
 
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
