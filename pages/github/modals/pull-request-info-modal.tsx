@@ -292,9 +292,9 @@ const PullRequestInfoModal = (props) => {
             );
 
             if (!isMined) {
-              toast.error(
-                `Transaction not found after ${process.env.TX_WAIT_BLOCK_COUNT} blocks`
-              );
+              // toast.error(
+              //   `Transaction not found after ${process.env.TX_WAIT_BLOCK_COUNT} blocks`
+              // );
             } else {
               const { tokenId, address } =
                 getMintedTokenIdFromTransactionReceipt(mintTxExecuted);
@@ -302,9 +302,9 @@ const PullRequestInfoModal = (props) => {
                 throw Error("Account and Wallet Address Minted not the same");
               }
               setMintedTokenId(tokenId);
-              toast.success(
-                "NFT Minted Successfully. Check your wallet for the token"
-              );
+              // toast.success(
+              //   "NFT Minted Successfully. Check your wallet for the token"
+              // );
             }
 
             setShowLoading(false);
