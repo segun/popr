@@ -3,7 +3,7 @@ import axios from "axios";
 const fs = require('fs');
 const FormData = require('form-data');
 
-export default async (req, res) => {  
+const AuthAPI = async (req, res) => {  
   const accessTokenUrl = process.env.NEXT_PUBLIC_ACCESS_TOKEN_URL;
   
   const {
@@ -21,3 +21,5 @@ export default async (req, res) => {
     token: result.data
   });
 };
+
+export default AuthAPI;

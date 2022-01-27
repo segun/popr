@@ -68,6 +68,7 @@ const WalletConnectDialog = (props: DialogProps) => {
                 {wallets.map((wallet) => {
                   return (
                     <Col
+                      key={wallet.name}
                       xs="6"
                       style={{ marginTop: "10px", marginBottom: "10px" }}
                     >

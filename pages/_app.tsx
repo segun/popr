@@ -7,7 +7,7 @@ import {
   RPC_URL,
   WALLET_CONNECT_BRIDGE,
   WALLET_CONNECT_POLL_INTERVAL,
-} from "./environment.test";
+} from "../utils/environment.test";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
