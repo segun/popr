@@ -2,7 +2,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { Button, Container } from "react-bootstrap";
 import { useWallet } from "use-wallet";
-import WalletConnectDialog from "./wallet.connect.dialog";
+import WalletConnectDialog from "../github/modals/wallet.connect.dialog";
 
 const Buttons = () => {
   const wallet = useWallet();
@@ -25,9 +25,9 @@ const Buttons = () => {
 
   return (
     <Container className="p-3">
-      <Link href={url}>
+      <Link href={url} passHref={true}>
         <Button size="lg" variant="primary">
-          Connect Github
+          Get Repositories
         </Button>
       </Link>
       <Button
