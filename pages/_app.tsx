@@ -2,14 +2,12 @@
 import { BscConnector } from "@binance-chain/bsc-connector";
 import type { AppProps /*, AppContext */ } from "next/app";
 import { UseWalletProvider } from "use-wallet";
-import {
-  CHAIN_ID,
-  RPC_URL,
-  WALLET_CONNECT_BRIDGE,
-  WALLET_CONNECT_POLL_INTERVAL,
-} from "../utils/environment.test";
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const CHAIN_ID = +process.env.NEXT_PUBLIC_API_CHAIN_ID;
+  const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
+  const WALLET_CONNECT_BRIDGE = process.env.NEXT_PUBLIC_WALLET_CONNECT_BRIDGE;
+  const WALLET_CONNECT_POLL_INTERVAL = process.env.NEXT_PUBLIC_WALLET_CONNECT_POLL_INTERVAL;
   return (
     <UseWalletProvider
       autoConnect
