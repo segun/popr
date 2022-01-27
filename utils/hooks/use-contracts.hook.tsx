@@ -8,7 +8,7 @@ export const useERC721Standard = (address: string, ethereum) => {
     return useContract(address, ethereum, abi) ;
 };
 
-export const usePOPR = (address: string, ethereum) => {
+export const getPOPRContract = (address: string, ethereum) => {
     const abi = ProofOfPullRequest.abi;   
     return useContract(address, ethereum, abi);
 };

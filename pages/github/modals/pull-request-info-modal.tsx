@@ -8,7 +8,7 @@ import { useContext, useEffect, useState } from "react";
 import WalletConnectDialog from "./wallet.connect.dialog";
 import {
   isTransactionMined,
-  usePOPR,
+  getPOPRContract,
 } from "../../../utils/hooks/use-contracts.hook";
 import { WalletStateContext } from "../../../utils/hooks/WalletStateContext";
 import { toast } from "react-toastify";
@@ -273,7 +273,7 @@ const PullRequestInfoModal = (props) => {
             setNftHash(imageUploadResult.data.cid);
             setJsonhash(metadataUploadResult.data.cid);
 
-            const popr = usePOPR(poprContractAddress, wallet.ethereum);
+            const popr = getPOPRContract(poprContractAddress, wallet.ethereum);
             const mintTxPromise = popr.mint(metadataUrl);
 
             walletStateContext.addNewQueuedTx(

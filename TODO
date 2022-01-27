@@ -1,0 +1,4 @@
+create a DBMS
+    DB should hold mint information
+    UI should check DB if already minted (disable mint button) before Minting
+    UI should display mint information from DB
