@@ -7,7 +7,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   const CHAIN_ID = +process.env.NEXT_PUBLIC_API_CHAIN_ID;
   const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
   const WALLET_CONNECT_BRIDGE = process.env.NEXT_PUBLIC_WALLET_CONNECT_BRIDGE;
-  const WALLET_CONNECT_POLL_INTERVAL = process.env.NEXT_PUBLIC_WALLET_CONNECT_POLL_INTERVAL;
+  const WALLET_CONNECT_POLL_INTERVAL =
+    process.env.NEXT_PUBLIC_WALLET_CONNECT_POLL_INTERVAL;
+
   return (
     <UseWalletProvider
       autoConnect
