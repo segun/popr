@@ -2,6 +2,8 @@
 import { BscConnector } from "@binance-chain/bsc-connector";
 import type { AppProps /*, AppContext */ } from "next/app";
 import { UseWalletProvider } from "use-wallet";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const CHAIN_ID = +process.env.NEXT_PUBLIC_API_CHAIN_ID;
@@ -49,7 +51,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         },
       }}
     >
-      <Component {...pageProps} />
+      <Component {...pageProps} />            
+      <ToastContainer />
     </UseWalletProvider>
   );
 }

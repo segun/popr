@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./auth.module.css";
@@ -10,15 +10,25 @@ import FilterByBranchModal from "./modals/filter-by-branch.modal";
 import { AuthProvider } from "../../utils/hooks/use-auth.hook";
 import PullRequestsComponent from "./components/pull.requests.component";
 import Buttons from "../components/buttons";
+import { useWallet } from "use-wallet";
+
+interface AuthUser {
+  login: string;
+  authToken: string;
+  githubUsername?: string;
+  walletAddress?: string;
+}
 
 const Auth = () => {
-  const [user, setUser] = React.useState({
+  const [user, setUser] = React.useState<AuthUser>({
     login: undefined,
     authToken: undefined,
+    githubUsername: undefined,
+    walletAddress: undefined,
   });
+
   const [userRepos, setUserRepos] = React.useState([]);
-  const [pullRequests, setPullRequests] = React.useState([]);
-  const [isPublicRepo, setPublicRepo] = React.useState(true);
+  const [pullRequests, setPullRequests] = React.useState([]);  
   const [displayComponent, setDisplayComponent] = React.useState("repos");
   const [showFilterByBranchModal, setShowFilterByBranchModal] =
     React.useState(false);
@@ -119,10 +129,10 @@ const Auth = () => {
           });
           const userContext = {
             login: userResult.data.login,
+            githubUsername: userResult.data.login,
             authToken: accessToken,
           };
-
-          setUser(userContext);
+          setUser({ ...user, ...userContext });
           setShowLoading(false);
         }
       }
@@ -130,6 +140,17 @@ const Auth = () => {
 
     doAuth();
   }, [code]);
+
+  const wallet = useWallet();
+
+  useEffect(() => {
+    console.log("Use effect in github/index called");
+    const userContext = {
+      walletAddress: wallet.account,
+    };
+
+    setUser({ ...user, ...userContext });
+  }, [wallet]);
 
   const getUserRepos = async (page: number) => {
     if (user.authToken) {
@@ -206,7 +227,9 @@ const Auth = () => {
           )}
 
           {displayComponent === "pull-requests" && (
-            <PullRequestsComponent pullRequests={pullRequests} />
+            <PullRequestsComponent
+              pullRequests={pullRequests}
+            />
           )}
 
           <FilterByBranchModal
