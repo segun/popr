@@ -18,6 +18,7 @@ import {
   NftData,
   saveNft,
 } from "../../../utils/db/skynet-db/skynetdb";
+import { config } from "../../../utils/config";
 
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
   ssr: false,
@@ -25,7 +26,7 @@ const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
 
 const PullRequestInfoModal = (props) => {
   const { pr } = props;
-  const ipfsGateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY;
+  const ipfsGateway = config.IPFS_GATEWAY;
 
   const wallet = useWallet();
   const auth = useAuthContext();
@@ -44,9 +45,9 @@ const PullRequestInfoModal = (props) => {
 
   const walletStateContext = useContext(WalletStateContext);
 
-  const poprContractAddress = process.env.NEXT_PUBLIC_API_POPR_ADDRESS;
-  const tokenAddress = process.env.NEXT_PUBLIC_API_TOKEN_ADDRESS;
-  const tokenTracker = process.env.NEXT_PUBLIC_API_TOKEN_TRACKER;
+  const poprContractAddress = config.POPR_ADDRESS;
+  const tokenAddress = config.TOKEN_ADDRESS;
+  const tokenTracker = config.TOKEN_TRACKER;
 
   const getMintedNfts = async () => {
     if (wallet.account) {
@@ -372,12 +373,12 @@ const PullRequestInfoModal = (props) => {
             const isMined = await isTransactionMined(
               wallet.ethereum,
               mintTxExecuted.transactionHash,
-              process.env.TX_WAIT_BLOCK_COUNT
+              config.TX_WAIT_BLOCK_COUNT
             );
 
             if (!isMined) {
               toast.error(
-                `Transaction not found after ${process.env.TX_WAIT_BLOCK_COUNT} blocks`
+                `Transaction not found after ${config.TX_WAIT_BLOCK_COUNT} blocks`
               );
             } else {
               const { tokenId, address } =

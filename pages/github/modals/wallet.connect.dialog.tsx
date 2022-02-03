@@ -1,6 +1,8 @@
 import React from "react";
 import { Button, Col, Modal, Row } from "react-bootstrap";
+import { toast } from "react-toastify";
 import { useWallet } from "use-wallet";
+import { config } from "../../../utils/config";
 
 interface DialogProps {
   open: boolean;
@@ -8,11 +10,48 @@ interface DialogProps {
 }
 
 const WalletConnectDialog = (props: DialogProps) => {
+  console.log(config);
   const wallet = useWallet();
+
+  const addGnosisChainNetwork = async () => {
+    try {
+        await wallet.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: config.CHAIN_ID }], // Hexadecimal version of 80001, prefixed with 0x
+        });
+    } catch (error) {
+        if (error.code === 4902) {
+            try {
+                await wallet.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{ 
+                        chainId: config.CHAIN_ID, // Hexadecimal version of 80001, prefixed with 0x
+                        chainName: "Gnosis Chain",
+                        nativeCurrency: {
+                            name: "Gnosis",
+                            symbol: "xDAI",
+                            decimals: 18,
+                        },
+                        rpcUrls: ["https://rpc.xdaichain.com"],
+                        blockExplorerUrls: ["https://blockscout.com/xdai/mainnet"],
+                        iconUrls: [""],
+                
+                    }],
+                });
+            } catch (addError){
+                console.log('Did not add network');
+            }
+        }
+    }
+}
+
 
   React.useEffect(() => {
     console.log(wallet);
-  }, [wallet]);
+    if(wallet.isConnected && wallet.status === 'connected' && wallet.chainId !== +config.CHAIN_ID) {
+      addGnosisChainNetwork();
+    }
+  }, [wallet.status]);
 
   const handleClose = () => {
     const { setOpen } = props;

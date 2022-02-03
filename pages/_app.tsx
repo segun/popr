@@ -4,20 +4,20 @@ import type { AppProps /*, AppContext */ } from "next/app";
 import { UseWalletProvider } from "use-wallet";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { config } from "../utils/config";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const CHAIN_ID = +process.env.NEXT_PUBLIC_API_CHAIN_ID;
-  const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL;
-  const WALLET_CONNECT_BRIDGE = process.env.NEXT_PUBLIC_WALLET_CONNECT_BRIDGE;
+  const CHAIN_ID = +config.CHAIN_ID;  
+  const RPC_URL = config.RPC_URL;
+  const WALLET_CONNECT_BRIDGE = config.WALLET_CONNECT_BRIDGE;
   const WALLET_CONNECT_POLL_INTERVAL =
-    process.env.NEXT_PUBLIC_WALLET_CONNECT_POLL_INTERVAL;
+    config.WALLET_CONNECT_POLL_INTERVAL;
 
   return (
     <UseWalletProvider
       autoConnect
       connectors={{
         injected: {
-          //allows you to connect and switch between mainnet and rinkeby within Metamask.
           chainId: [CHAIN_ID],
         },
         walletconnect: {
