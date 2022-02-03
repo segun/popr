@@ -2,6 +2,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { Button, Container } from "react-bootstrap";
 import { useWallet } from "use-wallet";
+import { config } from "../../utils/config";
 import WalletConnectDialog from "../github/modals/wallet.connect.dialog";
 
 const Buttons = () => {
@@ -9,9 +10,9 @@ const Buttons = () => {
   const [open, setOpen] = useState(false);
 
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
-  const authUrl = process.env.NEXT_PUBLIC_API_AUTHORIZE_URL;
-  const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
-  const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+  const authUrl = config.AUTHORIZE_URL;
+  const redirectUrl = config.REDIRECT_URL;
+  const clientId = config.CLIENT_ID;
   const url = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
 
   const connectWallet = () => {

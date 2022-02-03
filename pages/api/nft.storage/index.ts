@@ -1,4 +1,5 @@
 import { NFTStorage, Blob } from "nft.storage";
+import { config } from "../../../utils/config";
 
 
 const fs = require('fs');
@@ -6,7 +7,7 @@ const FormData = require('form-data');
 
 const api = async (req, res) => {  
   const data = req.body;
-  const nftStorageToken = process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN;
+  const nftStorageToken = config.NFT_STORAGE_TOKEN;
 
   const storage = new NFTStorage({ token: nftStorageToken });
   const cid = await storage.storeBlob(new Blob([data]));

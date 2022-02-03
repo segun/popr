@@ -12,6 +12,13 @@ import {
 } from "../../../utils/hooks/use-contracts.hook";
 import { WalletStateContext } from "../../../utils/hooks/WalletStateContext";
 import axios from "axios";
+import { toast } from "react-toastify";
+import {
+  getNfts,
+  NftData,
+  saveNft,
+} from "../../../utils/db/skynet-db/skynetdb";
+import { config } from "../../../utils/config";
 
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
   ssr: false,
@@ -19,27 +26,48 @@ const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
 
 const PullRequestInfoModal = (props) => {
   const { pr } = props;
-  const ipfsGateway = process.env.NEXT_PUBLIC_IPFS_GATEWAY;
+  const ipfsGateway = config.IPFS_GATEWAY;
 
   const wallet = useWallet();
+  const auth = useAuthContext();
   const [open, setOpen] = useState(false);
   const [canvas, setCanvas] = useState<p5Types.Renderer | undefined>(undefined);
   const [p5Instance, setP5Instance] = useState<p5Types | undefined>(undefined);
   const [nftHash, setNftHash] = useState<string | undefined>(undefined);
-  const [jsonHash, setJsonhash] = useState<string | undefined>(undefined);
+  const [jsonHash, setJsonHash] = useState<string | undefined>(undefined);
   const [mintedTokenId, setMintedTokenId] = useState<Number | undefined>(
     undefined
   );
+  const [mintedNfts, setMintedNfts] = useState<NftData[]>([]);
+
   const [showLoading, setShowLoading] = useState(false);
+  const [disableMint, setDisableMint] = useState(false);
+
   const walletStateContext = useContext(WalletStateContext);
 
-  const poprContractAddress = process.env.NEXT_PUBLIC_API_POPR_ADDRESS;
-  const tokenAddress = process.env.NEXT_PUBLIC_API_TOKEN_ADDRESS;
-  const tokenTracker = process.env.NEXT_PUBLIC_API_TOKEN_TRACKER;
+  const poprContractAddress = config.POPR_ADDRESS;
+  const tokenAddress = config.TOKEN_ADDRESS;
+  const tokenTracker = config.TOKEN_TRACKER;
+
+  const getMintedNfts = async () => {
+    if (wallet.account) {
+      const minted = await getNfts(wallet.account);      
+      setMintedNfts(minted && minted !== [] ? minted : []);
+
+      return minted;
+    }
+
+    return [];
+  };
 
   useEffect(() => {
-    // do something when wallet is connected
-  }, [wallet]);
+    setJsonHash(undefined);
+    setDisableMint(false);
+  }, [pr.node_id]);
+
+  useEffect(() => {
+    getMintedNfts();
+  }, [wallet.account, showLoading]);
 
   const id = () => {
     const result = [];
@@ -92,8 +120,6 @@ const PullRequestInfoModal = (props) => {
     return result;
   };
 
-  const auth = useAuthContext();
-
   const MAX_HEIGHT = 350;
   const MAX_WIDTH = 350;
   const DENSITY = 16;
@@ -108,6 +134,32 @@ const PullRequestInfoModal = (props) => {
     p5.noLoop();
     setCanvas(c);
     setP5Instance(p5);
+  };
+
+  const shouldDisableMint = () => {
+    console.log("Minted Nfts: ", mintedNfts);
+    if (showLoading) {
+      return true;
+    }
+
+    const nft: NftData = mintedNfts?.find((nft: NftData) => {
+      if (nft.pullRequestId === pr.node_id) {
+        return true;
+      }
+
+      return false;
+    });
+
+    console.log("found Nft: ", nft);
+
+    if (nft) {
+      setJsonHash(nft.jsonHash);
+      setNftHash(nft.nftHash);
+      setMintedTokenId(nft.tokenId);
+      return true;
+    }
+
+    return false;
   };
 
   function draw(p5: p5Types) {
@@ -203,12 +255,20 @@ const PullRequestInfoModal = (props) => {
   };
 
   const splitHashDisplay = (hash: string) => {
-    const len = hash.length;
-    return `${hash.substring(0, 10)}...${hash.substring(len - 10, len)}`;
+    if (hash) {
+      const len = hash.length;
+      return `${hash.substring(0, 10)}...${hash.substring(len - 10, len)}`;
+    }
+
+    return "";
   };
 
   const displayHash = (hash: string) => {
-    return hash.length <= 10 ? hash : splitHashDisplay(hash);
+    if(hash) {
+      return hash.length <= 10 ? hash : splitHashDisplay(hash);
+    }
+
+    return "";
   };
 
   const getMintedTokenIdFromTransactionReceipt = (txReceipt) => {
@@ -224,10 +284,34 @@ const PullRequestInfoModal = (props) => {
     return { tokenId, address };
   };
 
+  const updateDatabase = async (nft) => {
+    const dbNft = {
+      walletAddress: auth.walletAddress,
+      githubUsername: auth.login,
+      jsonHash: nft.jsonHash,
+      nftHash: nft.nftHash,
+      contractAddress: nft.contractAddress,
+      tokenId: nft.tokenId,
+      pullRequestId: pr.node_id,
+    };
+
+    await saveNft(dbNft);
+    await shouldDisableMint();
+  };
+
   const mintNft = async () => {
     if (wallet.isConnected()) {
       try {
+        toast('Running Pre-Mint check...');
+        await getMintedNfts();
+        if (shouldDisableMint()) {
+          toast.warning("Nft for this PR already minted");
+          return;
+        }
         setShowLoading(true);
+        setDisableMint(true);
+
+        toast('Uploading Nft to IPFS...');
         // 1. Upload Image to nft.storage, get the link
 
         const domCanvas = document.getElementById(
@@ -245,6 +329,7 @@ const PullRequestInfoModal = (props) => {
         );
 
         if (imageUploadResult.data.pin.status === "queued") {
+          toast('Uploading Metadata to IPFS...');
           // 2. Create json file set the image url to link got from 1
 
           const metadata = {
@@ -267,10 +352,11 @@ const PullRequestInfoModal = (props) => {
           );
 
           if (metadataUploadResult.data.pin.status === "queued") {
+            toast('Minting Nft on the blockchain...');
             const metadataUrl = `${ipfsGateway}/${metadataUploadResult.data.cid}`;
 
             setNftHash(imageUploadResult.data.cid);
-            setJsonhash(metadataUploadResult.data.cid);
+            setJsonHash(metadataUploadResult.data.cid);
 
             const popr = getPOPRContract(poprContractAddress, wallet.ethereum);
             const mintTxPromise = popr.mint(metadataUrl);
@@ -279,7 +365,7 @@ const PullRequestInfoModal = (props) => {
               mintTxPromise,
               "Minting Proof of Pull Request",
               {}
-            );            
+            );
 
             const mintTx = await mintTxPromise;
             const mintTxExecuted = await mintTx.wait(1);
@@ -287,13 +373,13 @@ const PullRequestInfoModal = (props) => {
             const isMined = await isTransactionMined(
               wallet.ethereum,
               mintTxExecuted.transactionHash,
-              process.env.TX_WAIT_BLOCK_COUNT
+              config.TX_WAIT_BLOCK_COUNT
             );
 
             if (!isMined) {
-              // toast.error(
-              //   `Transaction not found after ${process.env.TX_WAIT_BLOCK_COUNT} blocks`
-              // );
+              toast.error(
+                `Transaction not found after ${config.TX_WAIT_BLOCK_COUNT} blocks`
+              );
             } else {
               const { tokenId, address } =
                 getMintedTokenIdFromTransactionReceipt(mintTxExecuted);
@@ -301,23 +387,34 @@ const PullRequestInfoModal = (props) => {
                 throw Error("Account and Wallet Address Minted not the same");
               }
               setMintedTokenId(tokenId);
-              // toast.success(
-              //   "NFT Minted Successfully. Check your wallet for the token"
-              // );
+              toast.success(
+                "NFT Minted Successfully. Check your wallet for the token"
+              );
+
+              toast('Cleaning up...');
+              await updateDatabase({
+                nftHash: imageUploadResult.data.cid,
+                jsonHash: metadataUploadResult.data.cid,
+                contractAddress: poprContractAddress,
+                tokenId: tokenId,
+              });
             }
 
             setShowLoading(false);
+            setDisableMint(true);
           }
         }
       } catch (err) {
         console.log(err);
         setShowLoading(false);
+        setDisableMint(false);
       }
     } else {
       wallet?.reset();
       setOpen(true);
     }
   };
+
   return (
     <Modal show={props.show} onHide={props.onHide} centered size="lg">
       <Modal.Header closeButton>
@@ -357,7 +454,11 @@ const PullRequestInfoModal = (props) => {
             </Button>
           </Col>
           <Col xs={6} style={{ marginBottom: "20px" }}>
-            <Button variant="success" onClick={() => mintNft()}>
+            <Button
+              variant="success"
+              onClick={() => mintNft()}
+              disabled={disableMint}
+            >
               {wallet.isConnected() ? `Mint NFT` : "Connect Wallet"}
             </Button>
           </Col>
@@ -390,7 +491,10 @@ const PullRequestInfoModal = (props) => {
                   </a>
                 </p>
                 <p>
-                  <span>Contract: </span><a href={`${tokenTracker}/${tokenAddress}`}>{splitHashDisplay(tokenAddress)}</a>
+                  <span>Contract: </span>
+                  <a href={`${tokenTracker}/${tokenAddress}`}>
+                    {splitHashDisplay(tokenAddress)}
+                  </a>
                 </p>
                 <p>
                   <span>Minted Token Id: {mintedTokenId}</span>

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./auth.module.css";
@@ -10,15 +10,26 @@ import FilterByBranchModal from "./modals/filter-by-branch.modal";
 import { AuthProvider } from "../../utils/hooks/use-auth.hook";
 import PullRequestsComponent from "./components/pull.requests.component";
 import Buttons from "../components/buttons";
+import { useWallet } from "use-wallet";
+import { config } from "../../utils/config";
+
+interface AuthUser {
+  login: string;
+  authToken: string;
+  githubUsername?: string;
+  walletAddress?: string;
+}
 
 const Auth = () => {
-  const [user, setUser] = React.useState({
+  const [user, setUser] = React.useState<AuthUser>({
     login: undefined,
     authToken: undefined,
+    githubUsername: undefined,
+    walletAddress: undefined,
   });
+
   const [userRepos, setUserRepos] = React.useState([]);
-  const [pullRequests, setPullRequests] = React.useState([]);
-  const [isPublicRepo, setPublicRepo] = React.useState(true);
+  const [pullRequests, setPullRequests] = React.useState([]);  
   const [displayComponent, setDisplayComponent] = React.useState("repos");
   const [showFilterByBranchModal, setShowFilterByBranchModal] =
     React.useState(false);
@@ -34,12 +45,12 @@ const Auth = () => {
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
   const PER_PAGE = 100;
 
-  const searchReposUrl = process.env.NEXT_PUBLIC_API_SEARCH_REPOSITORIES_URL;
-  const authUrl = process.env.NEXT_PUBLIC_API_AUTHORIZE_URL;
-  const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
-  const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
-  const userApiUrl = process.env.NEXT_PUBLIC_USER_API_URL;
-  const userReposApiUrl = process.env.NEXT_PUBLIC_API_USER_REPOS_URL;
+  const searchReposUrl = config.SEARCH_REPOSITORIES_URL;
+  const authUrl = config.AUTHORIZE_URL;
+  const clientId = config.CLIENT_ID;
+  const redirectUrl = config.REDIRECT_URL;
+  const userApiUrl = config.USER_API_URL;
+  const userReposApiUrl = config.USER_REPOS_URL;
 
   const searchPullRequests = async (
     branch: string,
@@ -119,10 +130,10 @@ const Auth = () => {
           });
           const userContext = {
             login: userResult.data.login,
+            githubUsername: userResult.data.login,
             authToken: accessToken,
           };
-
-          setUser(userContext);
+          setUser({ ...user, ...userContext });
           setShowLoading(false);
         }
       }
@@ -130,6 +141,17 @@ const Auth = () => {
 
     doAuth();
   }, [code]);
+
+  const wallet = useWallet();
+
+  useEffect(() => {
+    console.log("Use effect in github/index called");
+    const userContext = {
+      walletAddress: wallet.account,
+    };
+
+    setUser({ ...user, ...userContext });
+  }, [wallet]);
 
   const getUserRepos = async (page: number) => {
     if (user.authToken) {
@@ -206,7 +228,9 @@ const Auth = () => {
           )}
 
           {displayComponent === "pull-requests" && (
-            <PullRequestsComponent pullRequests={pullRequests} />
+            <PullRequestsComponent
+              pullRequests={pullRequests}
+            />
           )}
 
           <FilterByBranchModal

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { useAuthContext } from "../../../utils/hooks/use-auth.hook";
 import PropType from "prop-types";
+import { config } from "../../../utils/config";
 
 const FilterByBranchModal = (props) => {
   const auth = useAuthContext();
@@ -11,7 +12,7 @@ const FilterByBranchModal = (props) => {
   const [selectedBranch, setSelectedBranch] = useState(undefined);
   const [keywords, setKeywords] = useState(undefined);
 
-  const reposApiUrl = process.env.NEXT_PUBLIC_API_REPOS_URL;
+  const reposApiUrl = config.REPOS_URL;
   useEffect(() => {
     const getBranches = async () => {
       const result = await axios.get(

@@ -5,12 +5,13 @@ import Buttons from "./components/buttons";
 export default function Home() {
   
   return (
-    <div className="container">
+    <div className="container">      
       <Head>
         <title>Proof of Pull Request</title>
         <link rel="icon" href="/favicon.ico" />
-      </Head>
+      </Head>      
       <Buttons />
+      
     </div>
   );
 }
