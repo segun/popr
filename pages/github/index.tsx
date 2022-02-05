@@ -41,7 +41,7 @@ const Auth = () => {
   const [searchKey, setSearchKey] = React.useState("");
 
   const router = useRouter();
-  const code = router.query.code;
+  const code: string = router.query.code as string;
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
   const PER_PAGE = 100;
 
@@ -51,6 +51,7 @@ const Auth = () => {
   const redirectUrl = config.REDIRECT_URL;
   const userApiUrl = config.USER_API_URL;
   const userReposApiUrl = config.USER_REPOS_URL;
+  const githubLocalAuthUrl = config.LOCAL_GITHUB_AUTH_URL;
 
   const searchPullRequests = async (
     branch: string,
@@ -116,7 +117,7 @@ const Auth = () => {
       if (code !== undefined) {
         setShowLoading(true);
 
-        const result = await axios.get(`/api/github/${code}/auth`);
+        const result = await axios.get(githubLocalAuthUrl.replace("${code}", code));
         if (result.data.token.indexOf("expired") >= 0) {
           setShowLoading(false);
           window.location.href = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
