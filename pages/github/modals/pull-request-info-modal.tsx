@@ -19,10 +19,27 @@ import {
   saveNft,
 } from "../../../utils/db/skynet-db/skynetdb";
 import { config } from "../../../utils/config";
+import { NFTStorage } from "nft.storage";
 
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
   ssr: false,
 });
+
+const nftStorageToken = config.NFT_STORAGE_TOKEN;
+const storage = new NFTStorage({ token: nftStorageToken });
+
+const PIN_STATUSES = {
+  PINNED: "pinned",
+  QUEUED: "queued"
+};
+
+const storeNftData = async (data) => {
+  const cid = await storage.storeBlob(new Blob([data]));
+  console.log({ cid });
+  const status = await storage.status(cid);
+  console.log(status);
+  return status;
+};
 
 const PullRequestInfoModal = (props) => {
   const { pr } = props;
@@ -51,7 +68,7 @@ const PullRequestInfoModal = (props) => {
 
   const getMintedNfts = async () => {
     if (wallet.account) {
-      const minted = await getNfts(wallet.account);      
+      const minted = await getNfts(wallet.account);
       setMintedNfts(minted && minted !== [] ? minted : []);
 
       return minted;
@@ -264,7 +281,7 @@ const PullRequestInfoModal = (props) => {
   };
 
   const displayHash = (hash: string) => {
-    if(hash) {
+    if (hash) {
       return hash.length <= 10 ? hash : splitHashDisplay(hash);
     }
 
@@ -302,7 +319,7 @@ const PullRequestInfoModal = (props) => {
   const mintNft = async () => {
     if (wallet.isConnected()) {
       try {
-        toast('Running Pre-Mint check...');
+        toast("Running Pre-Mint check...");
         await getMintedNfts();
         if (shouldDisableMint()) {
           toast.warning("Nft for this PR already minted");
@@ -311,7 +328,7 @@ const PullRequestInfoModal = (props) => {
         setShowLoading(true);
         setDisableMint(true);
 
-        toast('Uploading Nft to IPFS...');
+        toast("Uploading Nft to IPFS...");
         // 1. Upload Image to nft.storage, get the link
 
         const domCanvas = document.getElementById(
@@ -320,22 +337,16 @@ const PullRequestInfoModal = (props) => {
 
         const dataUrl = domCanvas.toDataURL("image/png", 1);
 
-        const imageUploadResult = await axios.post(
-          "/api/nft.storage",
-          dataUrl,
-          {
-            headers: { "content-type": "image/png" },
-          }
-        );
+        const imageUploadResult = await storeNftData(dataUrl);
 
-        if (imageUploadResult.data.pin.status === "queued") {
-          toast('Uploading Metadata to IPFS...');
+        if (imageUploadResult.pin.status === PIN_STATUSES.QUEUED || imageUploadResult.pin.status === PIN_STATUSES.PINNED) {
+          toast("Uploading Metadata to IPFS...");
           // 2. Create json file set the image url to link got from 1
 
           const metadata = {
             name: "Proof of Pull Request",
             description: pr.title,
-            image: `${ipfsGateway}/${imageUploadResult.data.cid}`,
+            image: `${ipfsGateway}/${imageUploadResult.cid}`,
             external_url: pr.html_url,
             attributes: pr,
           };
@@ -343,20 +354,14 @@ const PullRequestInfoModal = (props) => {
           console.log(metadata);
 
           // 3. Upload json file, get url
-          const metadataUploadResult = await axios.post(
-            "/api/nft.storage",
-            metadata,
-            {
-              headers: { "content-type": "image/png" },
-            }
-          );
+          const metadataUploadResult = await storeNftData(metadata);
 
-          if (metadataUploadResult.data.pin.status === "queued") {
-            toast('Minting Nft on the blockchain...');
-            const metadataUrl = `${ipfsGateway}/${metadataUploadResult.data.cid}`;
+          if (metadataUploadResult.pin.status === PIN_STATUSES.QUEUED || metadataUploadResult.pin.status === PIN_STATUSES.PINNED) {
+            toast("Minting Nft on the blockchain...");
+            const metadataUrl = `${ipfsGateway}/${metadataUploadResult.cid}`;
 
-            setNftHash(imageUploadResult.data.cid);
-            setJsonHash(metadataUploadResult.data.cid);
+            setNftHash(imageUploadResult.cid);
+            setJsonHash(metadataUploadResult.cid);
 
             const popr = getPOPRContract(poprContractAddress, wallet.ethereum);
             const mintTxPromise = popr.mint(metadataUrl);
@@ -391,10 +396,10 @@ const PullRequestInfoModal = (props) => {
                 "NFT Minted Successfully. Check your wallet for the token"
               );
 
-              toast('Cleaning up...');
+              toast("Cleaning up...");
               await updateDatabase({
-                nftHash: imageUploadResult.data.cid,
-                jsonHash: metadataUploadResult.data.cid,
+                nftHash: imageUploadResult.cid,
+                jsonHash: metadataUploadResult.cid,
                 contractAddress: poprContractAddress,
                 tokenId: tokenId,
               });
