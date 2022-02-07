@@ -4,7 +4,7 @@ import PropType from "prop-types";
 import p5Types from "p5";
 import dynamic from "next/dynamic";
 import { useWallet } from "use-wallet";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import WalletConnectDialog from "./wallet.connect.dialog";
 import {
   isTransactionMined,
@@ -20,6 +20,8 @@ import {
 } from "../../../utils/db/skynet-db/skynetdb";
 import { config } from "../../../utils/config";
 import { NFTStorage } from "nft.storage";
+import { genart } from "../../../utils/gen-art";
+import { InstalledLibraries } from "../../../utils/gen-art/data";
 
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
   ssr: false,
@@ -35,9 +37,7 @@ const PIN_STATUSES = {
 
 const storeNftData = async (data) => {
   const cid = await storage.storeBlob(new Blob([data]));
-  console.log({ cid });
   const status = await storage.status(cid);
-  console.log(status);
   return status;
 };
 
@@ -47,6 +47,7 @@ const PullRequestInfoModal = (props) => {
 
   const wallet = useWallet();
   const auth = useAuthContext();
+  const [genArtLib, setGenArtLib] = useState(InstalledLibraries.Urpflanze);
   const [open, setOpen] = useState(false);
   const [canvas, setCanvas] = useState<p5Types.Renderer | undefined>(undefined);
   const [p5Instance, setP5Instance] = useState<p5Types | undefined>(undefined);
@@ -56,6 +57,8 @@ const PullRequestInfoModal = (props) => {
     undefined
   );
   const [mintedNfts, setMintedNfts] = useState<NftData[]>([]);
+
+  const imageCanvas = useRef(null);
 
   const [showLoading, setShowLoading] = useState(false);
   const [disableMint, setDisableMint] = useState(false);
@@ -86,75 +89,28 @@ const PullRequestInfoModal = (props) => {
     getMintedNfts();
   }, [wallet.account, showLoading]);
 
-  const id = () => {
-    const result = [];
-    if (pr) {
-      let val1 = [...pr.html_url.toString()];
-      result.push(
-        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-      ); // 1
-
-      val1 = [...pr.node_id.toString()];
-      result.push(
-        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-      ); // 2
-
-      val1 = [...pr.title.toString()];
-      result.push(
-        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-      ); // 3
-
-      val1 = [...pr.id.toString()];
-      result.push(
-        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-      ); // 4
-
-      val1 = [...pr.number.toString()];
-      result.push(
-        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-      ); // 5
-
-      val1 = [...pr.created_at.toString()];
-      result.push(
-        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-      ); // 6
-
-      val1 = [...pr.updated_at.toString()];
-      result.push(
-        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-      ); // 7
-
-      val1 = [...pr.closed_at.toString()];
-      result.push(
-        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-      ); // 8
-
-      val1 = [...pr.body.toString()];
-      result.push(
-        val1.reduce((acc, item) => acc + item.charCodeAt(0), val1.length) % 255
-      ); // 9
+  useEffect(() => {
+    console.log("imageCanvas: ", imageCanvas);
+    console.log("imageCanvas.current: ", imageCanvas.current);
+    if(imageCanvas.current && genArtLib !== InstalledLibraries.p5) {
+      genart.draw(genArtLib, {
+        canvasRef: imageCanvas.current, 
+        pr: props.pr
+      });
     }
-    return result;
-  };
+  }, [genArtLib, imageCanvas.current]);
 
-  const MAX_HEIGHT = 350;
-  const MAX_WIDTH = 350;
-  const DENSITY = 16;
-  const GAP = MAX_HEIGHT / DENSITY;
-  const RELOAD_TIMEOUT = 3000;
-  const STROKE_COLOR = "#00203F";
-
-  const setup = (p5: p5Types, canvasParentRef: Element) => {
-    const c = p5.createCanvas(MAX_HEIGHT, MAX_WIDTH).parent(canvasParentRef);
-    c.id("my-canvas");
-    p5.stroke(STROKE_COLOR);
-    p5.noLoop();
+  const setupP5 = (p5: p5Types, canvasParentRef: Element) => {
+    const c = genart.setup(genArtLib, {p5, canvasParentRef}) as p5Types.Element;    
     setCanvas(c);
     setP5Instance(p5);
   };
 
+  const drawP5 = (p5: p5Types) => {
+    genart.draw(genArtLib, {p5});
+  }
+
   const shouldDisableMint = () => {
-    console.log("Minted Nfts: ", mintedNfts);
     if (showLoading) {
       return true;
     }
@@ -167,8 +123,6 @@ const PullRequestInfoModal = (props) => {
       return false;
     });
 
-    console.log("found Nft: ", nft);
-
     if (nft) {
       setJsonHash(nft.jsonHash);
       setNftHash(nft.nftHash);
@@ -177,93 +131,6 @@ const PullRequestInfoModal = (props) => {
     }
 
     return false;
-  };
-
-  function draw(p5: p5Types) {
-    let index = id();
-    const tonesArray = [];
-    tonesArray.push([
-      [index[0], index[1], index[2]],
-      [index[3], index[4], index[5]],
-      [index[6], index[7], index[8]],
-    ]);
-
-    index = id();
-    tonesArray.push([
-      [index[0], index[1], index[2]],
-      [index[3], index[4], index[5]],
-      [index[6], index[7], index[8]],
-    ]);
-
-    index = id();
-    tonesArray.push([
-      [index[0], index[1], index[2]],
-      [index[3], index[4], index[5]],
-      [index[6], index[7], index[8]],
-    ]);
-
-    index = id();
-    tonesArray.push([
-      [index[0], index[1], index[2]],
-      [index[3], index[4], index[5]],
-      [index[6], index[7], index[8]],
-    ]);
-
-    console.log(tonesArray);
-
-    const lines = [];
-    let odd = false;
-    for (let y = GAP / 2; y <= MAX_HEIGHT; y += GAP) {
-      odd = !odd;
-      const trait = [];
-      const oddFactor = odd ? GAP / 2 : 0;
-      for (let x = GAP / 4; x <= MAX_HEIGHT; x += GAP) {
-        trait.push({
-          x: x + (Math.random() * 0.8 - 0.4) * GAP + oddFactor,
-          y: y + (Math.random() * 0.8 - 0.4) * GAP,
-        });
-      }
-      lines.push(trait);
-    }
-    odd = true;
-    for (let y = 0; y < lines.length - 1; y++) {
-      odd = !odd;
-      const dotLine = [];
-      for (let i = 0; i < lines[y].length; i++) {
-        dotLine.push(odd ? lines[y][i] : lines[y + 1][i]);
-        dotLine.push(odd ? lines[y + 1][i] : lines[y][i]);
-      }
-      for (let i = 0; i < dotLine.length - 2; i++) {
-        let tonesIndex = Math.floor(Math.random() * tonesArray.length);
-        let tones = tonesArray[tonesIndex];
-
-        let radius = 20;
-
-        if (i % 3 === 0) {
-          radius = 15;
-        }
-
-        if (i % 2 === 0) {
-          drawTriangle(p5, dotLine[i], dotLine[i + 1], dotLine[i + 2], tones);
-        } else {
-          drawCircle(p5, dotLine[i], dotLine[i + 1], tones, radius);
-        }
-      }
-    }
-  }
-
-  const drawCircle = (p5: p5Types, pointA, pointB, tones, radius) => {
-    let random_index = Math.floor(Math.random() * tones.length);
-    const [r, g, b] = tones[random_index];
-    p5.fill(r, g, b);
-    p5.circle(pointA.x, pointB.y, radius);
-  };
-
-  const drawTriangle = (p5: p5Types, pointA, pointB, pointC, tones) => {
-    let random_index = Math.floor(Math.random() * tones.length);
-    const [r, g, b] = tones[random_index];
-    p5.fill(r, g, b);
-    p5.triangle(pointA.x, pointA.y, pointB.x, pointB.y, pointC.x, pointC.y);
   };
 
   const downloadNft = async () => {
@@ -292,9 +159,6 @@ const PullRequestInfoModal = (props) => {
     const relevantTransferEvent = txReceipt.events.find(
       (e) => e.event === "Minted"
     );
-
-    console.log("to: ", relevantTransferEvent.args.to);
-    console.log("tokenId: ", relevantTransferEvent.args.tokenId.toNumber());
 
     const tokenId = relevantTransferEvent.args.tokenId.toNumber(); // convert the BigNumber tokenId emitted to a number.
     const address = relevantTransferEvent.args.to;
@@ -350,8 +214,6 @@ const PullRequestInfoModal = (props) => {
             external_url: pr.html_url,
             attributes: pr,
           };
-
-          console.log(metadata);
 
           // 3. Upload json file, get url
           const metadataUploadResult = await storeNftData(metadata);
@@ -468,7 +330,12 @@ const PullRequestInfoModal = (props) => {
             </Button>
           </Col>
           <Col xs={6}>
-            <Sketch setup={setup} draw={draw} />
+            {
+              genArtLib === InstalledLibraries.p5 && <Sketch setup={setupP5} draw={drawP5} />
+            }
+            {
+              genArtLib === InstalledLibraries.Urpflanze && <div id='my-canvas' ref={imageCanvas} />
+            }           
           </Col>
           <Col xs={6}>
             {showLoading && (

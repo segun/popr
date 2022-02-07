@@ -10,7 +10,6 @@ const PullRequestsComponent = (props) => {
   const { pullRequests } = props;
 
   const showPRInfo = (pr) => {
-    console.log(pr);
     setSelectedPR(pr);
     setShowPRInfoModal(true);
   };

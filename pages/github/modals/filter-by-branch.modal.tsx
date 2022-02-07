@@ -23,7 +23,6 @@ const FilterByBranchModal = (props) => {
           },
         }
       );
-      console.log(result.data);
       setBranches(result.data);
     };
 

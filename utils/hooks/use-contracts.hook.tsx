@@ -31,12 +31,6 @@ export const isTransactionMined = async (
             const provider = new ethers.providers.Web3Provider(ethereum);
             let blockCount = 0;
             provider.on('block', async (blockNumber) => {
-                console.log(
-                    'Block Mined: ',
-                    blockNumber,
-                    blockCount,
-                    numberOfBlocks,
-                );
                 blockCount++;
                 if (blockCount > numberOfBlocks) {
                     provider.removeAllListeners('block');

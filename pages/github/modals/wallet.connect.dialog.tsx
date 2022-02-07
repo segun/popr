@@ -10,7 +10,6 @@ interface DialogProps {
 }
 
 const WalletConnectDialog = (props: DialogProps) => {
-  console.log(config);
   const wallet = useWallet();
 
   const addGnosisChainNetwork = async () => {
@@ -47,7 +46,6 @@ const WalletConnectDialog = (props: DialogProps) => {
 
 
   React.useEffect(() => {
-    console.log(wallet);
     if(wallet.isConnected && wallet.status === 'connected' && wallet.chainId !== +config.CHAIN_ID) {
       addGnosisChainNetwork();
     }

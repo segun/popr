@@ -30,16 +30,12 @@ interface Entry {
 export const saveNft = async (nft: NftData) => {
   try {
     const { privateKey, publicKey } = genKeyPairFromSeed(nft.walletAddress);
-    console.log(privateKey);
-    console.log(publicKey);
     const savedNftsKey = nft.walletAddress;
 
     let entry: Entry;
     try {
       entry = await client.db.getJSON(publicKey, savedNftsKey);
     } catch (err) {}
-
-    console.log("entry: ", entry);
 
     if (!entry.data) {
       entry.data = [];
@@ -61,7 +57,6 @@ export const getNfts = async (wallet: string) => {
     const { publicKey } = genKeyPairFromSeed(wallet);
     const savedNftsKey = wallet;
     const entry: Entry = await client.db.getJSON(publicKey, savedNftsKey);
-    console.log(entry);
     return entry.data;
   } catch (err) {
     console.log(err);
