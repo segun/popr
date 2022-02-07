@@ -21,10 +21,15 @@ export interface NftData {
   pullRequestId: string;
 }
 
-interface Entry {
-  data: NftData[];
+interface Entry<T> {
+  data: T[];
   dataKey: string;
   revision: number;
+}
+
+export interface Url {
+  name: string;
+  url: string
 }
 
 export const saveNft = async (nft: NftData) => {
@@ -32,7 +37,7 @@ export const saveNft = async (nft: NftData) => {
     const { privateKey, publicKey } = genKeyPairFromSeed(nft.walletAddress);
     const savedNftsKey = nft.walletAddress;
 
-    let entry: Entry;
+    let entry: Entry<NftData>;
     try {
       entry = await client.db.getJSON(publicKey, savedNftsKey);
     } catch (err) {}
@@ -56,11 +61,57 @@ export const getNfts = async (wallet: string) => {
   try {
     const { publicKey } = genKeyPairFromSeed(wallet);
     const savedNftsKey = wallet;
-    const entry: Entry = await client.db.getJSON(publicKey, savedNftsKey);
+    const entry: Entry<NftData> = await client.db.getJSON(publicKey, savedNftsKey);
     return entry.data;
   } catch (err) {
     console.log(err);
   }
-
   return [];
+};
+
+export const getImageApiList = async () => {
+  try {
+    const { publicKey } = genKeyPairFromSeed("this is a seed");
+    const dbKey = "api-list";
+    const entry: Entry<Url> = await client.db.getJSON(publicKey, dbKey);
+    console.log(entry);
+    return entry.data;
+  } catch (err) {
+    console.log(err);
+  }
+  return [];
+};
+
+export const saveImageApi = async (name: string, url: string) => {  
+
+  try {
+    const { privateKey, publicKey } = genKeyPairFromSeed("this is a seed");
+    const dbKey = "api-list";
+
+    await client.db.setJSON(privateKey, dbKey, []);    
+
+    let entry: Entry<Url>;
+    try {
+      entry = await client.db.getJSON(publicKey, dbKey);
+    } catch (err) {}
+
+    if (!entry.data) {
+      entry.data = [];
+    }
+
+    entry.data.push({name, url});
+    await client.db.setJSON(privateKey, dbKey, entry.data);
+
+    return true;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+
+export const resetAPIDB =async () => {
+  const { privateKey, publicKey } = genKeyPairFromSeed("this is a seed");
+  const dbKey = "api-list";
+
+  await client.db.setJSON(privateKey, dbKey, []);    
 };
