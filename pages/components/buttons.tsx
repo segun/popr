@@ -7,7 +7,6 @@ import { useWallet } from "use-wallet";
 import { config } from "../../utils/config";
 import {
   getImageApiList,
-  resetAPIDB,
   saveImageApi,
   Url,
 } from "../../utils/db/skynet-db/skynetdb";
@@ -35,6 +34,11 @@ const Buttons = () => {
 
   const definedApis = async () => {
     const _apiList = await getImageApiList();
+    if (_apiList && _apiList.length > 0) {
+      if (!config.IMAGE_API_URL) {
+        config.IMAGE_API_URL = _apiList[0].url;
+      }
+    }
     setApiList(_apiList || []);
   };
 
@@ -53,6 +57,7 @@ const Buttons = () => {
       // 2. add to list
       const response = await axios.get(event.target.value);
       if (response.data.status === "ok") {
+        config.IMAGE_API_URL = event.target.value;
       } else {
         toast.error("URL is not a valid Image API url");
       }
@@ -79,7 +84,7 @@ const Buttons = () => {
       } else {
         toast.error("URL is not a valid Image API url");
       }
-      setAddButtonDisabled(false);      
+      setAddButtonDisabled(false);
     } catch (err) {
       toast("Error adding API: " + err);
       setAddButtonDisabled(false);
@@ -89,14 +94,14 @@ const Buttons = () => {
   return (
     <Container className="p-3">
       <Row>
-        <Col xs={3}>
+        <Col xs={2}>
           <Link href={authURL} passHref={true}>
             <Button size="lg" variant="primary">
               Get Repositories
             </Button>
           </Link>
         </Col>
-        <Col xs={3}>
+        <Col xs={6}>
           <Button
             style={{ marginLeft: "15px" }}
             variant="secondary"
@@ -107,7 +112,7 @@ const Buttons = () => {
             {wallet.isConnected() ? wallet.account : "Connect Wallet"}
           </Button>
         </Col>
-        <Col xs={6}>
+        <Col xs={4}>
           <Row>
             <Col xs={8}>
               <Form.Select
@@ -120,16 +125,6 @@ const Buttons = () => {
                 })}
                 <option value="add_new">Add</option>
               </Form.Select>
-            </Col>
-            <Col xs={4}>
-              <Button
-                style={{ marginLeft: "5px" }}
-                variant="secondary"
-                color="secondary"
-                onClick={() => connectWallet()}
-              >
-                {wallet.isConnected() ? wallet.account : "Use Selected"}
-              </Button>
             </Col>
           </Row>
         </Col>

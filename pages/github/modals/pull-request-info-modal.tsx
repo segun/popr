@@ -20,8 +20,6 @@ import {
 } from "../../../utils/db/skynet-db/skynetdb";
 import { config } from "../../../utils/config";
 import { NFTStorage } from "nft.storage";
-import { genart } from "../../../utils/gen-art";
-import { InstalledLibraries } from "../../../utils/gen-art/data";
 
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
   ssr: false,
@@ -47,10 +45,7 @@ const PullRequestInfoModal = (props) => {
 
   const wallet = useWallet();
   const auth = useAuthContext();
-  const [genArtLib, setGenArtLib] = useState(InstalledLibraries.Urpflanze);
   const [open, setOpen] = useState(false);
-  const [canvas, setCanvas] = useState<p5Types.Renderer | undefined>(undefined);
-  const [p5Instance, setP5Instance] = useState<p5Types | undefined>(undefined);
   const [nftHash, setNftHash] = useState<string | undefined>(undefined);
   const [jsonHash, setJsonHash] = useState<string | undefined>(undefined);
   const [mintedTokenId, setMintedTokenId] = useState<Number | undefined>(
@@ -58,10 +53,9 @@ const PullRequestInfoModal = (props) => {
   );
   const [mintedNfts, setMintedNfts] = useState<NftData[]>([]);
 
-  const imageCanvas = useRef(null);
-
   const [showLoading, setShowLoading] = useState(false);
   const [disableMint, setDisableMint] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
 
   const walletStateContext = useContext(WalletStateContext);
 
@@ -81,34 +75,23 @@ const PullRequestInfoModal = (props) => {
   };
 
   useEffect(() => {
+    const getImageUrl = async () => {
+      const _imageUrlResponse = await axios.post(config.IMAGE_API_URL, pr);      
+      setImageUrl(_imageUrlResponse.data);
+    }
+
+    if(config.IMAGE_API_URL) {
+      getImageUrl();
+    } else {
+      toast('No image url api selected');
+    }      
     setJsonHash(undefined);
-    setDisableMint(false);
+    setDisableMint(false);    
   }, [pr.node_id]);
 
   useEffect(() => {
     getMintedNfts();
   }, [wallet.account, showLoading]);
-
-  useEffect(() => {
-    console.log("imageCanvas: ", imageCanvas);
-    console.log("imageCanvas.current: ", imageCanvas.current);
-    if(imageCanvas.current && genArtLib !== InstalledLibraries.p5) {
-      genart.draw(genArtLib, {
-        canvasRef: imageCanvas.current, 
-        pr: props.pr
-      });
-    }
-  }, [genArtLib, imageCanvas.current]);
-
-  const setupP5 = (p5: p5Types, canvasParentRef: Element) => {
-    const c = genart.setup(genArtLib, {p5, canvasParentRef}) as p5Types.Element;    
-    setCanvas(c);
-    setP5Instance(p5);
-  };
-
-  const drawP5 = (p5: p5Types) => {
-    genart.draw(genArtLib, {p5});
-  }
 
   const shouldDisableMint = () => {
     if (showLoading) {
@@ -131,11 +114,6 @@ const PullRequestInfoModal = (props) => {
     }
 
     return false;
-  };
-
-  const downloadNft = async () => {
-    const fileName = `mycanvas_${Math.floor(Math.random() * 10000)}`;
-    p5Instance.saveCanvas(canvas, fileName, "png");
   };
 
   const splitHashDisplay = (hash: string) => {
@@ -195,11 +173,7 @@ const PullRequestInfoModal = (props) => {
         toast("Uploading Nft to IPFS...");
         // 1. Upload Image to nft.storage, get the link
 
-        const domCanvas = document.getElementById(
-          "my-canvas"
-        ) as HTMLCanvasElement;
-
-        const dataUrl = domCanvas.toDataURL("image/png", 1);
+        const dataUrl = imageUrl;
 
         const imageUploadResult = await storeNftData(dataUrl);
 
@@ -315,12 +289,7 @@ const PullRequestInfoModal = (props) => {
               Wallet: {wallet.account}
             </Col>
           )}
-          <Col xs={6} style={{ marginBottom: "20px" }}>
-            <Button variant="success" onClick={() => downloadNft()}>
-              Download NFT
-            </Button>
-          </Col>
-          <Col xs={6} style={{ marginBottom: "20px" }}>
+          <Col xs={12} style={{ marginBottom: "20px" }}>
             <Button
               variant="success"
               onClick={() => mintNft()}
@@ -330,12 +299,7 @@ const PullRequestInfoModal = (props) => {
             </Button>
           </Col>
           <Col xs={6}>
-            {
-              genArtLib === InstalledLibraries.p5 && <Sketch setup={setupP5} draw={drawP5} />
-            }
-            {
-              genArtLib === InstalledLibraries.Urpflanze && <div id='my-canvas' ref={imageCanvas} />
-            }           
+            <img src={imageUrl} width="350" height="350"></img>
           </Col>
           <Col xs={6}>
             {showLoading && (
