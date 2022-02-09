@@ -47,7 +47,7 @@ const Auth = () => {
 
   const searchReposUrl = config.SEARCH_REPOSITORIES_URL;
   const authUrl = config.AUTHORIZE_URL;
-  const clientId = config.CLIENT_ID;
+  const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
   const redirectUrl = config.REDIRECT_URL;
   const userApiUrl = config.USER_API_URL;
   const userReposApiUrl = config.USER_REPOS_URL;

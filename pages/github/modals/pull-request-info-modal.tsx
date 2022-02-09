@@ -20,12 +20,13 @@ import {
 } from "../../../utils/db/skynet-db/skynetdb";
 import { config } from "../../../utils/config";
 import { NFTStorage } from "nft.storage";
+import Image from "next/image";
 
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
   ssr: false,
 });
 
-const nftStorageToken = config.NFT_STORAGE_TOKEN;
+const nftStorageToken = process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN;
 const storage = new NFTStorage({ token: nftStorageToken });
 
 const PIN_STATUSES = {
@@ -87,7 +88,7 @@ const PullRequestInfoModal = (props) => {
     }      
     setJsonHash(undefined);
     setDisableMint(false);    
-  }, [pr.node_id]);
+  }, [pr?.node_id]);
 
   useEffect(() => {
     getMintedNfts();
@@ -99,7 +100,7 @@ const PullRequestInfoModal = (props) => {
     }
 
     const nft: NftData = mintedNfts?.find((nft: NftData) => {
-      if (nft.pullRequestId === pr.node_id) {
+      if (nft.pullRequestId === pr?.node_id) {
         return true;
       }
 
@@ -151,7 +152,7 @@ const PullRequestInfoModal = (props) => {
       nftHash: nft.nftHash,
       contractAddress: nft.contractAddress,
       tokenId: nft.tokenId,
-      pullRequestId: pr.node_id,
+      pullRequestId: pr?.node_id,
     };
 
     await saveNft(dbNft);
@@ -299,7 +300,7 @@ const PullRequestInfoModal = (props) => {
             </Button>
           </Col>
           <Col xs={6}>
-            <img src={imageUrl} width="350" height="350"></img>
+            <img alt="NFT Image" src={imageUrl} width="350" height="350"></img>
           </Col>
           <Col xs={6}>
             {showLoading && (

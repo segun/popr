@@ -24,7 +24,7 @@ const Buttons = () => {
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
   const authUrl = config.AUTHORIZE_URL;
   const redirectUrl = config.REDIRECT_URL;
-  const clientId = config.CLIENT_ID;
+  const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
   const authURL = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
 
   const connectWallet = () => {
@@ -121,7 +121,7 @@ const Buttons = () => {
               >
                 <option value="">Select Generative Art API</option>
                 {apiList.map((api) => {
-                  return <option value={api.url}>{api.name}</option>;
+                  return <option key={api.name} value={api.url}>{api.name}</option>;
                 })}
                 <option value="add_new">Add</option>
               </Form.Select>
