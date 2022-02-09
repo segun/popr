@@ -1,7 +1,6 @@
 import { Modal, Button, Row, Col, Form } from "react-bootstrap";
 import { useAuthContext } from "../../../utils/hooks/use-auth.hook";
 import PropType from "prop-types";
-import p5Types from "p5";
 import dynamic from "next/dynamic";
 import { useWallet } from "use-wallet";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -20,11 +19,6 @@ import {
 } from "../../../utils/db/skynet-db/skynetdb";
 import { config } from "../../../utils/config";
 import { NFTStorage } from "nft.storage";
-import Image from "next/image";
-
-const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
-  ssr: false,
-});
 
 const nftStorageToken = process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN;
 const storage = new NFTStorage({ token: nftStorageToken });

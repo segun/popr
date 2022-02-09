@@ -1,0 +1,23 @@
+export const config = {
+  LOCAL_GITHUB_AUTH_URL: "https://popr-77jmuanyv-segun1.vercel.app/api/github/${code}/auth",
+  REDIRECT_URL: "https://segun.github.io/popr/github",
+  ACCESS_TOKEN_URL: "https://github.com/login/oauth/access_token",
+  REPOS_URL: "https://api.github.com/repos",
+  SEARCH_ISSUES_URL: "https://api.github.com/search/issues",
+  SEARCH_REPOSITORIES_URL:
+    "https://api.github.com/search/repositories",
+  AUTHORIZE_URL: "https://github.com/login/oauth/authorize",
+  USER_API_URL: "https://api.github.com/user",
+  USER_REPOS_URL: "https://api.github.com/user/repos",
+  POPR_ADDRESS: "0xF45C634B7D2193a6d3D38F94f62cB0A9Ba8DdaE0",
+  TOKEN_ADDRESS: "0xd8482a7aa54061c65af49966f2c8a99a4d4a4f5a",
+  TOKEN_TRACKER: "https://testnet.bscscan.com/token",
+  NFT_STORAGE_URL: "https://api.nft.storage",
+  IPFS_GATEWAY: "https://cloudflare-ipfs.com/ipfs",
+  CHAIN_ID: "0x61",
+  RPC_URL: "https://data-seed-prebsc-2-s3.binance.org:8545/",
+  WALLET_CONNECT_BRIDGE: "https://bridge.walletconnect.org",
+  WALLET_CONNECT_POLL_INTERVAL: 12000,
+  TX_WAIT_BLOCK_COUNT: 3,
+  IMAGE_API_URL: '',
+};
