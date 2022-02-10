@@ -14,39 +14,39 @@ const WalletConnectDialog = (props: DialogProps) => {
 
   const addGnosisChainNetwork = async () => {
     try {
-        await wallet.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: config.CHAIN_ID }], // Hexadecimal version of 80001, prefixed with 0x
-        });
+      await wallet.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: process.env.NEXT_PUBLIC_CHAIN_ID }], // Hexadecimal version of 80001, prefixed with 0x
+      });
     } catch (error) {
-        if (error.code === 4902) {
-            try {
-                await wallet.ethereum.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [{ 
-                        chainId: config.CHAIN_ID, // Hexadecimal version of 80001, prefixed with 0x
-                        chainName: "Gnosis Chain",
-                        nativeCurrency: {
-                            name: "Gnosis",
-                            symbol: "xDAI",
-                            decimals: 18,
-                        },
-                        rpcUrls: ["https://rpc.xdaichain.com"],
-                        blockExplorerUrls: ["https://blockscout.com/xdai/mainnet"],
-                        iconUrls: [""],
-                
-                    }],
-                });
-            } catch (addError){
-                console.log('Did not add network');
-            }
+      if (error.code === 4902) {
+        try {
+          await wallet.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: process.env.NEXT_PUBLIC_CHAIN_ID, // Hexadecimal version of 80001, prefixed with 0x
+                chainName: "Gnosis Chain",
+                nativeCurrency: {
+                  name: "Gnosis",
+                  symbol: "xDAI",
+                  decimals: 18,
+                },
+                rpcUrls: ["https://rpc.xdaichain.com"],
+                blockExplorerUrls: ["https://blockscout.com/xdai/mainnet"],
+                iconUrls: [""],
+              },
+            ],
+          });
+        } catch (addError) {
+          console.log("Did not add network");
         }
+      }
     }
-}
-
+  };
 
   React.useEffect(() => {
-    if(wallet.isConnected && wallet.status === 'connected' && wallet.chainId !== +config.CHAIN_ID) {
+    if (wallet.isConnected && wallet.status === "connected" && wallet.chainId !== +process.env.NEXT_PUBLIC_CHAIN_ID) {
       addGnosisChainNetwork();
     }
   }, [wallet.status]);
@@ -104,18 +104,9 @@ const WalletConnectDialog = (props: DialogProps) => {
               <Row style={{ marginBottom: "10px" }}>
                 {wallets.map((wallet) => {
                   return (
-                    <Col
-                      key={wallet.name}
-                      xs="6"
-                      style={{ marginTop: "10px", marginBottom: "10px" }}
-                    >
+                    <Col key={wallet.name} xs="6" style={{ marginTop: "10px", marginBottom: "10px" }}>
                       <div className="d-grid gap-2">
-                        <Button
-                          className="wallet-button-image"
-                          variant="warning"
-                          size="lg"
-                          onClick={wallet.onClick}
-                        >
+                        <Button className="wallet-button-image" variant="warning" size="lg" onClick={wallet.onClick}>
                           {wallet.name}
                         </Button>
                       </div>

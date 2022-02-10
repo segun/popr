@@ -12,7 +12,6 @@ export const config = {
   TOKEN_TRACKER: "https://testnet.bscscan.com/token",
   NFT_STORAGE_URL: "https://api.nft.storage",
   IPFS_GATEWAY: "https://cloudflare-ipfs.com/ipfs",
-  CHAIN_ID: "0x61",
   RPC_URL: "https://data-seed-prebsc-2-s3.binance.org:8545/",
   WALLET_CONNECT_BRIDGE: "https://bridge.walletconnect.org",
   WALLET_CONNECT_POLL_INTERVAL: 12000,

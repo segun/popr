@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { config } from "../utils/config";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const CHAIN_ID = +config.CHAIN_ID;  
+  const CHAIN_ID = +process.env.NEXT_PUBLIC_CHAIN_ID;  
   const RPC_URL = config.RPC_URL;
   const WALLET_CONNECT_BRIDGE = config.WALLET_CONNECT_BRIDGE;
   const WALLET_CONNECT_POLL_INTERVAL =
