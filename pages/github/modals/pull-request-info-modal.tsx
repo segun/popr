@@ -54,7 +54,7 @@ const PullRequestInfoModal = (props) => {
 
   const walletStateContext = useContext(WalletStateContext);
 
-  const poprContractAddress = config.POPR_ADDRESS;
+  const poprContractAddress = config.XDAI_POPR_ADDRESS;
   const tokenAddress = config.TOKEN_ADDRESS;
   const tokenTracker = config.TOKEN_TRACKER;
 
