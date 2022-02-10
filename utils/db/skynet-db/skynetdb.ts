@@ -88,8 +88,6 @@ export const saveImageApi = async (name: string, url: string) => {
     const { privateKey, publicKey } = genKeyPairFromSeed("this is a seed");
     const dbKey = "api-list";
 
-    await client.db.setJSON(privateKey, dbKey, []);    
-
     let entry: Entry<Url>;
     try {
       entry = await client.db.getJSON(publicKey, dbKey);
