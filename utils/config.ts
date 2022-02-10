@@ -1,6 +1,4 @@
 export const config = {
-  LOCAL_GITHUB_AUTH_URL: "https://popr-git-main-segun1.vercel.app/popr/api/github/${code}/auth",
-  REDIRECT_URL: "https://popr-git-main-segun1.vercel.app/popr/github",
   ACCESS_TOKEN_URL: "https://github.com/login/oauth/access_token",
   REPOS_URL: "https://api.github.com/repos",
   SEARCH_ISSUES_URL: "https://api.github.com/search/issues",

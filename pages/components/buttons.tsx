@@ -23,7 +23,7 @@ const Buttons = () => {
 
   const state = Math.random() * Number.MAX_SAFE_INTEGER;
   const authUrl = config.AUTHORIZE_URL;
-  const redirectUrl = config.REDIRECT_URL;
+  const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
   const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
   const authURL = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
 

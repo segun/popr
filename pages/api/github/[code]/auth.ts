@@ -14,7 +14,7 @@ const AuthAPI = async (req, res) => {
   const form = new FormData();
   form.append('client_secret', process.env.NEXT_PUBLIC_CLIENT_SECRET);
   form.append('client_id', process.env.NEXT_PUBLIC_CLIENT_ID);
-  form.append('redirect_uri', config.REDIRECT_URL);
+  form.append('redirect_uri', process.env.NEXT_PUBLIC_REDIRECT_URL);
   form.append('code', code);
 
   const result = await axios.post(accessTokenUrl, form,  { headers: form.getHeaders() });

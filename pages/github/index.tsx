@@ -48,10 +48,10 @@ const Auth = () => {
   const searchReposUrl = config.SEARCH_REPOSITORIES_URL;
   const authUrl = config.AUTHORIZE_URL;
   const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
-  const redirectUrl = config.REDIRECT_URL;
+  const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
   const userApiUrl = config.USER_API_URL;
   const userReposApiUrl = config.USER_REPOS_URL;
-  const githubLocalAuthUrl = config.LOCAL_GITHUB_AUTH_URL;
+  const githubLocalAuthUrl = process.env.NEXT_PUBLIC_LOCAL_GITHUB_AUTH_URL;
 
   const searchPullRequests = async (
     branch: string,
