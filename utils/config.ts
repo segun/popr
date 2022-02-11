@@ -10,7 +10,7 @@ export const config = {
   BSC_POPR_ADDRESS: "0xF45C634B7D2193a6d3D38F94f62cB0A9Ba8DdaE0",
   XDAI_POPR_ADDRESS: "0x39acc10Fc1586f3ba8EC8954e80501e11bCa389C",
   XDAI_TOKEN_ADDRESS: "0x19fc6693132Da591d107202ed65f969EA516FEB8",
-  XDAI_TOKEN_TRACKER: "https://blockscout.com/xdai/mainnet/token/0x19fc6693132da591d107202ed65f969ea516feb8/instance/",
+  XDAI_TOKEN_TRACKER: "https://blockscout.com/xdai/mainnet/token/",
   NFT_STORAGE_URL: "https://api.nft.storage",
   IPFS_GATEWAY: "https://cloudflare-ipfs.com/ipfs",
   RPC_URL: "https://data-seed-prebsc-2-s3.binance.org:8545/",
