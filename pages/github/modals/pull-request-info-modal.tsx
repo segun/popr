@@ -55,8 +55,8 @@ const PullRequestInfoModal = (props) => {
   const walletStateContext = useContext(WalletStateContext);
 
   const poprContractAddress = config.XDAI_POPR_ADDRESS;
-  const tokenAddress = config.TOKEN_ADDRESS;
-  const tokenTracker = config.TOKEN_TRACKER;
+  const tokenAddress = config.XDAI_TOKEN_ADDRESS;
+  const tokenTracker = config.XDAI_TOKEN_TRACKER;
 
   const getMintedNfts = async () => {
     if (wallet.account) {
