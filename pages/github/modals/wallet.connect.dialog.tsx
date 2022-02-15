@@ -74,23 +74,7 @@ const WalletConnectDialog = (props: DialogProps) => {
         wallet.connect("walletconnect");
         handleClose();
       },
-    },
-    {
-      name: "Binance Wallet",
-      image: "img/bsc.png",
-      onClick: () => {
-        wallet.connect("bsc");
-        handleClose();
-      },
-    },
-    {
-      name: "Torus",
-      image: "img/torus.png",
-      onClick: () => {
-        wallet.connect("torus");
-        handleClose();
-      },
-    },
+    }
   ];
   return (
     <React.Fragment>
