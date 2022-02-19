@@ -185,7 +185,7 @@ const PullRequestInfoModal = (props) => {
           };
 
           // 3. Upload json file, get url
-          const metadataUploadResult = await storeNftData(metadata);
+          const metadataUploadResult = await storeNftData(JSON.stringify(metadata));
 
           if (metadataUploadResult.pin.status === PIN_STATUSES.QUEUED || metadataUploadResult.pin.status === PIN_STATUSES.PINNED) {
             toast("Minting Nft on the blockchain...");
