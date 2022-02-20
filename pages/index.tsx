@@ -8,7 +8,6 @@ export default function Home() {
     <div className="container">      
       <Head>
         <title>Proof of Pull Request</title>
-        <link rel="icon" href="/favicon.ico" />
       </Head>      
       <Buttons />
       

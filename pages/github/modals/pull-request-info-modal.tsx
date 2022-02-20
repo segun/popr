@@ -29,6 +29,7 @@ const PIN_STATUSES = {
 };
 
 const storeNftData = async (data) => {
+  console.log("Storing Data....");
   const cid = await storage.storeBlob(new Blob([data]));
   const status = await storage.status(cid);
   return status;
@@ -168,78 +169,78 @@ const PullRequestInfoModal = (props) => {
         toast("Uploading Nft to IPFS...");
         // 1. Upload Image to nft.storage, get the link
 
-        const dataUrl = imageUrl;
-
-        const imageUploadResult = await storeNftData(dataUrl);
-
-        if (imageUploadResult.pin.status === PIN_STATUSES.QUEUED || imageUploadResult.pin.status === PIN_STATUSES.PINNED) {
-          toast("Uploading Metadata to IPFS...");
-          // 2. Create json file set the image url to link got from 1
-
-          const metadata = {
-            name: "Proof of Pull Request",
-            description: pr.title,
-            image: `${ipfsGateway}/${imageUploadResult.cid}`,
-            external_url: pr.html_url,
-            attributes: pr,
-          };
-
-          // 3. Upload json file, get url
-          const metadataUploadResult = await storeNftData(JSON.stringify(metadata));
-
-          if (metadataUploadResult.pin.status === PIN_STATUSES.QUEUED || metadataUploadResult.pin.status === PIN_STATUSES.PINNED) {
-            toast("Minting Nft on the blockchain...");
-            const metadataUrl = `${ipfsGateway}/${metadataUploadResult.cid}`;
-
-            setNftHash(imageUploadResult.cid);
-            setJsonHash(metadataUploadResult.cid);
-
-            const popr = getPOPRContract(poprContractAddress, wallet.ethereum);
-            const mintTxPromise = popr.mint(metadataUrl);
-
-            walletStateContext.addNewQueuedTx(
-              mintTxPromise,
-              "Minting Proof of Pull Request",
-              {}
-            );
-
-            const mintTx = await mintTxPromise;
-            const mintTxExecuted = await mintTx.wait(1);
-
-            const isMined = await isTransactionMined(
-              wallet.ethereum,
-              mintTxExecuted.transactionHash,
-              config.TX_WAIT_BLOCK_COUNT
-            );
-
-            if (!isMined) {
-              toast.error(
-                `Transaction not found after ${config.TX_WAIT_BLOCK_COUNT} blocks`
+        fetch(imageUrl).then(res => res.blob()).then(async (blob) => {
+          const imageUploadResult = await storeNftData(blob);
+          console.log(imageUploadResult);
+          if (imageUploadResult.pin.status === PIN_STATUSES.QUEUED || imageUploadResult.pin.status === PIN_STATUSES.PINNED) {
+            toast("Uploading Metadata to IPFS...");
+            // 2. Create json file set the image url to link got from 1
+  
+            const metadata = {
+              name: "Proof of Pull Request",
+              description: pr.title,
+              image: `${ipfsGateway}/${imageUploadResult.cid}`,
+              external_url: pr.html_url,
+              attributes: pr,
+            };
+  
+            // 3. Upload json file, get url
+            const metadataUploadResult = await storeNftData(JSON.stringify(metadata, null, 2));
+  
+            if (metadataUploadResult.pin.status === PIN_STATUSES.QUEUED || metadataUploadResult.pin.status === PIN_STATUSES.PINNED) {
+              toast("Minting Nft on the blockchain...");
+              const metadataUrl = `${ipfsGateway}/${metadataUploadResult.cid}`;
+  
+              setNftHash(imageUploadResult.cid);
+              setJsonHash(metadataUploadResult.cid);
+  
+              const popr = getPOPRContract(poprContractAddress, wallet.ethereum);
+              const mintTxPromise = popr.mint(metadataUrl);
+  
+              walletStateContext.addNewQueuedTx(
+                mintTxPromise,
+                "Minting Proof of Pull Request",
+                {}
               );
-            } else {
-              const { tokenId, address } =
-                getMintedTokenIdFromTransactionReceipt(mintTxExecuted);
-              if (address !== wallet.account) {
-                throw Error("Account and Wallet Address Minted not the same");
+  
+              const mintTx = await mintTxPromise;
+              const mintTxExecuted = await mintTx.wait(1);
+  
+              const isMined = await isTransactionMined(
+                wallet.ethereum,
+                mintTxExecuted.transactionHash,
+                config.TX_WAIT_BLOCK_COUNT
+              );
+  
+              if (!isMined) {
+                toast.error(
+                  `Transaction not found after ${config.TX_WAIT_BLOCK_COUNT} blocks`
+                );
+              } else {
+                const { tokenId, address } =
+                  getMintedTokenIdFromTransactionReceipt(mintTxExecuted);
+                if (address !== wallet.account) {
+                  throw Error("Account and Wallet Address Minted not the same");
+                }
+                setMintedTokenId(tokenId);
+                toast.success(
+                  "NFT Minted Successfully. Check your wallet for the token"
+                );
+  
+                toast("Cleaning up...");
+                await updateDatabase({
+                  nftHash: imageUploadResult.cid,
+                  jsonHash: metadataUploadResult.cid,
+                  contractAddress: poprContractAddress,
+                  tokenId: tokenId,
+                });
               }
-              setMintedTokenId(tokenId);
-              toast.success(
-                "NFT Minted Successfully. Check your wallet for the token"
-              );
-
-              toast("Cleaning up...");
-              await updateDatabase({
-                nftHash: imageUploadResult.cid,
-                jsonHash: metadataUploadResult.cid,
-                contractAddress: poprContractAddress,
-                tokenId: tokenId,
-              });
+  
+              setShowLoading(false);
+              setDisableMint(true);
             }
-
-            setShowLoading(false);
-            setDisableMint(true);
-          }
-        }
+          }          
+        });                
       } catch (err) {
         console.log(err);
         setShowLoading(false);

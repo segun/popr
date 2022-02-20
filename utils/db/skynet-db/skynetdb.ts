@@ -59,7 +59,10 @@ export const saveNft = async (nft: NftData) => {
 
 export const getNfts = async (wallet: string) => {
   try {
-    const { publicKey } = genKeyPairFromSeed(wallet);
+    const { privateKey, publicKey } = genKeyPairFromSeed(wallet);
+
+    // clear DB
+    // await client.db.setJSON(privateKey, wallet, []);    
     const savedNftsKey = wallet;
     const entry: Entry<NftData> = await client.db.getJSON(publicKey, savedNftsKey);
     return entry.data;

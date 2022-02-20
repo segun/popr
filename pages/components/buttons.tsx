@@ -21,7 +21,7 @@ const Buttons = () => {
   const [selectedApi, setSelectedApi] = useState("");
   const [addButtonDisabled, setAddButtonDisabled] = useState(false);
 
-  const state = Math.random() * Number.MAX_SAFE_INTEGER;
+  const state = 100110;//Math.random() * Number.MAX_SAFE_INTEGER;
   const authUrl = config.AUTHORIZE_URL;
   const redirectUrl = process.env.NEXT_PUBLIC_REDIRECT_URL;
   const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;

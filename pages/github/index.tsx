@@ -42,7 +42,7 @@ const Auth = () => {
 
   const router = useRouter();
   const code: string = router.query.code as string;
-  const state = Math.random() * Number.MAX_SAFE_INTEGER;
+  const state = 100110;//Math.random() * Number.MAX_SAFE_INTEGER;
   const PER_PAGE = 100;
 
   const searchReposUrl = config.SEARCH_REPOSITORIES_URL;
@@ -117,7 +117,7 @@ const Auth = () => {
       if (code !== undefined) {
         setShowLoading(true);
 
-        const result = await axios.get(githubLocalAuthUrl.replace("${code}", code));
+        const result = await axios.get(githubLocalAuthUrl.replace("[code]", code));
         if (result.data.token.indexOf("expired") >= 0) {
           setShowLoading(false);
           window.location.href = `${authUrl}?client_id=${clientId}&state=${state}&redirect_uri=${redirectUrl}`;
@@ -182,7 +182,6 @@ const Auth = () => {
     <div className="container">
       <Head>
         <title>Proof of Pull Request</title>
-        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <Container className="p-3">
