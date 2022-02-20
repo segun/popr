@@ -111,6 +111,7 @@ export const saveImageApi = async (name: string, url: string) => {
 
 
 export const resetAPIDB =async () => {
+  console.log("resetting api db");
   const { privateKey, publicKey } = genKeyPairFromSeed("this is a seed");
   const dbKey = "api-list";
 

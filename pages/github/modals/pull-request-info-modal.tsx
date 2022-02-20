@@ -82,7 +82,10 @@ const PullRequestInfoModal = (props) => {
       toast('No image url api selected');
     }      
     setJsonHash(undefined);
-    setDisableMint(false);    
+    setNftHash(undefined);
+    setMintedTokenId(undefined);
+    setDisableMint(false);  
+    shouldDisableMint();  
   }, [pr?.node_id]);
 
   useEffect(() => {
@@ -90,9 +93,6 @@ const PullRequestInfoModal = (props) => {
   }, [wallet.account, showLoading]);
 
   const shouldDisableMint = () => {
-    if (showLoading) {
-      return true;
-    }
 
     const nft: NftData = mintedNfts?.find((nft: NftData) => {
       if (nft.pullRequestId === pr?.node_id) {
@@ -101,6 +101,16 @@ const PullRequestInfoModal = (props) => {
 
       return false;
     });
+        
+    if (showLoading) {
+      return true;
+      if (nft) {
+        setJsonHash(nft.jsonHash);
+        setNftHash(nft.nftHash);
+        setMintedTokenId(nft.tokenId);
+        return true;
+      }
+    }
 
     if (nft) {
       setJsonHash(nft.jsonHash);
@@ -154,13 +164,14 @@ const PullRequestInfoModal = (props) => {
     await shouldDisableMint();
   };
 
-  const mintNft = async () => {
+  const mintNft = async () => {  
     if (wallet.isConnected()) {
       try {
         toast("Running Pre-Mint check...");
         await getMintedNfts();
         if (shouldDisableMint()) {
           toast.warning("Nft for this PR already minted");
+          setShowLoading(false);
           return;
         }
         setShowLoading(true);
