@@ -5,7 +5,7 @@ import { resetAPIDB } from "../utils/db/skynet-db/skynetdb";
 
 export default function Home() {
   
-  resetAPIDB();
+  // resetAPIDB();
   return (
     <div className="container">      
       <Head>
